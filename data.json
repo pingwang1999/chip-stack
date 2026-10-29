@@ -1,0 +1,1450 @@
+{
+ "meta": {
+  "title": "AI Chip Packaging Stack",
+  "lede": "A signal leaving the GPU die crosses four carriers before it reaches the motherboard. Each one is built from a different material set, and each one has a different supply base. Click any layer to see what it is made of, who makes it, and where it binds.",
+  "context_path": [
+   "GB300 NVL72 rack",
+   "Compute tray",
+   "Package stack",
+   "Materials & suppliers"
+  ],
+  "built_at": "2026-10-23",
+  "lang": "en",
+  "demo": true,
+  "stamp": "Updated 2026-10-23"
+ },
+ "ui": {
+  "explode": "Explode view",
+  "reset": "Reset",
+  "notToScale": "Layers are schematic, not to scale",
+  "signalPath": "SIGNAL PATH",
+  "stamp": "更新於 {date} · 出處 {src} 份 · 供應商 {sup} 筆",
+  "stampDemo": "Updated {date}",
+  "soleSource": "sole source",
+  "concentrated": "highly concentrated",
+  "qualMonths": "~{n} mo qualification",
+  "sourcePrefix": "出處 ",
+  "noSource": "尚無出處，內容為結構骨架",
+  "homeIdx": "Start here",
+  "homeTitle": "Four carriers, four material chains",
+  "homeEn": "SELECT A LAYER",
+  "homeNote": "PCB is often lumped in with chip packaging. It does not belong there. The substrate runs on build-up film with no glass reinforcement. The PCB runs on copper clad laminate, pressed from copper foil, resin and glass fabric. The two chains barely share a supplier.",
+  "howTo": "How to read it",
+  "how": [
+   "Click any layer on the left and the panel shows what it is made of and who supplies it",
+   "Explode view separates the four carriers so you can see how they sit",
+   "Red marks a single-source dependency, which is where impact analysis starts"
+  ],
+  "layerN": "Layer {n}",
+  "suppliers": "Suppliers",
+  "suppliersInDrill": "Grouped by position in the chain. Click any block in the drill-down below to see who supplies it.",
+  "bottleneck": "Where it binds",
+  "costTable": "Cost breakdown in numbers",
+  "shareOf": "{a} as a share of {b} cost",
+  "noSupplierData": "No supplier data yet",
+  "layerNoSuppliers": "No supplier data for this layer yet",
+  "factors": [
+   "Layers",
+   "Area",
+   "Yield loss"
+  ],
+  "unitLayers": " layers",
+  "unitX": "×",
+  "demandVsM6": "CCL demand relative to M6",
+  "drillTitle": "Drill down",
+  "drillHintClosed": "Click {top} to open it up",
+  "drillHintOpen": "Click a block to see who supplies it",
+  "drillOpenHint": "open it up →",
+  "pctOfDash": "{lo}–{hi}% of {b}",
+  "pctOfTo": "{lo} to {hi}% of {b}",
+  "pctOfTop": "{p}% of {a}",
+  "cost100": "100% of cost",
+  "lvlFinished": "finished",
+  "lvlBase": "base material",
+  "lvlRaw": "raw material",
+  "lvlStep": "process step",
+  "dmTitle": "Demand cascade",
+  "dmSub": "Pick a rack, set how many ship in a year, and the chain works down to the HBM stacks and DRAM dies behind them. The number you set is a scenario, not a forecast.",
+  "dmDriver": "Racks shipped per year",
+  "dmRacks": "Racks",
+  "dmGpuPer": "GPU packages per rack",
+  "dmStackPer": "HBM stacks per GPU",
+  "dmDiePer": "DRAM dies per stack",
+  "dmSpec": "spec",
+  "dmUsable": "usable",
+  "dmPkgCaption": "{d} compute dies per package, {s} HBM stacks around them, {l} layers each",
+  "dmDerived": "derived",
+  "dmXcheck": "reconciled",
+  "dmStackFrom": "288 ÷ 36 GB",
+  "dmOutStacks": "HBM stacks required",
+  "dmOutDies": "DRAM dies required",
+  "dmOutCap": "total HBM capacity",
+  "dmOutBits": "HBM bits",
+  "dmBitsNote": "Memory makers size demand in bits, not units. Die density changes every node, so only bits compare across generations. 1 Eb is a billion Gb.",
+  "dmOutLp": "CPU memory, up to {n} GB each",
+  "dmOutLpBits": "LPDDR5X bits",
+  "dmLpNote": "The same rack also consumes LPDDR5X on the CPU side. In bits the two are close in size, but HBM burns several times the wafer per bit, which is where the gap opens once you convert to capacity.",
+  "drillHintStep": "Click any step to see the tools and materials behind it",
+  "other": "Other",
+  "noMaterialSup": "No supplier mapped to this material yet",
+  "supplierPrefix": "Suppliers ",
+  "coverYes": "資料夾裡有 {n} 份報告對應到這一層",
+  "coverNo": "尚無對應報告，內容為結構骨架",
+  "foot": [
+   {
+    "h": "Why four layers",
+    "p": [
+     "The numbering is not a taxonomy. It is the order the signal actually travels. Moving outward from the die, pad pitch widens by roughly an order of magnitude at every step, and the material set changes with it. 01 is innermost, 04 is the board."
+    ]
+   },
+   {
+    "h": "What this is",
+    "p": [
+     "A working map of the AI chip packaging supply chain, built bottom-up from company filings and sell-side research on the Taiwan and Japan supply base. The cost model on the PCB layer is my own derivation."
+    ]
+   },
+   {
+    "h": "Where it goes next",
+    "p": [
+     "Impact analysis. Each node carries concentration, sole-source status and qualification lead time, so a capacity or pricing event can be traced through to how many racks it gates and how long a substitution would take."
+    ]
+   }
+  ],
+  "countries": {
+   "台灣": "Taiwan",
+   "日本": "Japan",
+   "韓國": "Korea",
+   "美國": "USA",
+   "中國": "China",
+   "荷蘭": "Netherlands",
+   "香港": "Hong Kong",
+   "新加坡": "Singapore",
+   "德國": "Germany"
+  }
+ },
+ "layers": [
+  {
+   "id": "die",
+   "idx": "01",
+   "name": "Die & HBM",
+   "en": "LOGIC DIE AND HIGH BANDWIDTH MEMORY",
+   "swatch": "var(--mat-die)",
+   "spec": [
+    {
+     "k": "Full name",
+     "v": "Logic die and high bandwidth memory"
+    },
+    {
+     "k": "Position",
+     "v": "Innermost layer, where the signal starts"
+    },
+    {
+     "k": "Purpose",
+     "v": "Compute itself, plus memory sitting right next to it"
+    },
+    {
+     "k": "Function",
+     "v": "Logic operations and data staging"
+    },
+    {
+     "k": "Materials",
+     "v": "Silicon wafer. HBM is a vertical stack of DRAM dies joined by through-silicon vias"
+    }
+   ],
+   "note": "HBM is the only thing on this map that sits in layer 01 and layer 02 at the same time. It needs a leading-edge DRAM process to make the dies and advanced packaging to stack twelve of them, so its supply behaves unlike the rest of memory. Neither gate opening is enough on its own. Micron has put a number on that with its three-to-one input ratio, meaning HBM3E consumes roughly three times the wafer of DDR5 for the same capacity, and has said the ratio rises in later generations. Add 2026 supply already sold out against a stated ability to meet only half to two-thirds of customer demand, and the gap is not something capex alone closes.",
+   "note_confidence": 2,
+   "note_basis": "富邦整理的美光 2026 年 10 月法說",
+   "note_sources": [
+    "src-micron-fubon-20261001"
+   ],
+   "tagline": "Silicon · TSV die stacking",
+   "coverage": null
+  },
+  {
+   "id": "pkg",
+   "idx": "02",
+   "name": "Advanced packaging",
+   "en": "ADVANCED PACKAGING / COWOS",
+   "swatch": "var(--mat-interposer)",
+   "spec": [
+    {
+     "k": "Full name",
+     "v": "Advanced packaging, 2.5D integration"
+    },
+    {
+     "k": "Position",
+     "v": "Between the die and the substrate"
+    },
+    {
+     "k": "Purpose",
+     "v": "Puts the GPU die and several HBM stacks on one common base"
+    },
+    {
+     "k": "Function",
+     "v": "Very short reach, very high bandwidth die-to-die interconnect"
+    },
+    {
+     "k": "Materials",
+     "v": "Silicon interposer or redistribution layer, through-silicon vias, microbumps, underfill, molding compound"
+    }
+   ],
+   "note": "This is the layer the industry agrees has been tightest. What binds here is not process yield the way it would be in a fab. It is physical interposer capacity and the time it takes to stand up more of it.",
+   "note_confidence": 3,
+   "note_basis": "初始骨架，尚未綁定出處",
+   "tagline": "CoWoS · interposer · TSV",
+   "coverage": null
+  },
+  {
+   "id": "sub",
+   "idx": "03",
+   "name": "IC substrate",
+   "en": "IC SUBSTRATE / ABF",
+   "swatch": "var(--mat-abf)",
+   "spec": [
+    {
+     "k": "Full name",
+     "v": "IC substrate, ABF substrate at the high end"
+    },
+    {
+     "k": "Position",
+     "v": "Between the package and the board"
+    },
+    {
+     "k": "Purpose",
+     "v": "Fans the fine package pitch out to something the board can actually attach to"
+    },
+    {
+     "k": "Function",
+     "v": "Signal fan-out, mechanical support, part of the thermal path"
+    },
+    {
+     "k": "Materials",
+     "v": "ABF build-up film carries no glass. The core layer is a glass-reinforced laminate. Plus copper foil, laser-drilled vias and solder balls"
+    }
+   ],
+   "note": "Substrate pricing moves on the same line as PCB. The core of an ABF substrate is itself a laminate, Kinsus is qualifying a T-glass plus E-glass build, and Elite Material has started shipping core material into substrates. So when glass fabric and copper foil tighten, substrates tighten with them. Unimicron and Ibiden capacity is absorbed by AI GPUs and ASICs, which is why the next-generation AMD server CPU substrate went to Nan Ya PCB.",
+   "note_confidence": 2,
+   "note_basis": "核心層材料見台光電與景碩速報，產能排擠見南電 10 月速報，均為富邦",
+   "note_sources": [
+    "src-emc-fubon-20261006",
+    "src-kinsus-fubon-20260924",
+    "src-nanya-pcb-fubon-20261002"
+   ],
+   "tagline": "ABF film · no glass reinforcement",
+   "coverage": null
+  },
+  {
+   "id": "pcb",
+   "idx": "04",
+   "name": "PCB motherboard",
+   "en": "PRINTED CIRCUIT BOARD",
+   "swatch": "var(--mat-pcb)",
+   "spec": [
+    {
+     "k": "Full name",
+     "v": "Printed circuit board"
+    },
+    {
+     "k": "Position",
+     "v": "Outermost carrier"
+    },
+    {
+     "k": "Purpose",
+     "v": "Carries the modules, distributes power, routes signal off-board"
+    },
+    {
+     "k": "Function",
+     "v": "Signal transmission and power delivery"
+    },
+    {
+     "k": "Materials",
+     "v": "Copper clad laminate, pressed from copper foil, resin and glass fabric, bonded layer to layer with prepreg"
+    }
+   ],
+   "note": "The tightest input this year is not an exotic one. It is ordinary E-glass fabric, up more than 80% in the first half, which has held laminate makers at around 70-75% utilisation with order books they cannot fill. High-end copper foil tells the same story, with HVLP4 demand well above what the Japanese incumbents plus Co-Tech can put out. Look one step further up and the real gate is equipment. High-end looms are quoting into 2030 and treaters run 18 to 24 months, so how fast this layer expands is decided by the machine builders.",
+   "note_confidence": 2,
+   "note_basis": "E-glass 漲幅八成以上見大和與高盛，稼動率 70 到 75% 見凱基、統一、大和，織布機交期見富邦富喬速報，上膠機交期見統一，HVLP4 缺口見未具名銅箔報告",
+   "note_sources": [
+    "src-iteq-daiwa-20260807",
+    "src-iteq-gs-20260810",
+    "src-iteq-kgi-20260807",
+    "src-iteq-uni-20260810",
+    "src-fuchiao-fubon-20260817",
+    "src-copperfoil-unknown-2025"
+   ],
+   "tagline": "CCL · copper · glass · resin",
+   "coverage": null
+  }
+ ],
+ "suppliers": {
+  "die": [
+   {
+    "id": "tsmc-logic",
+    "name": "TSMC",
+    "ticker": "2330",
+    "country": "Taiwan",
+    "layer": "die",
+    "component": "Logic die",
+    "role": "Leading-edge logic foundry",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "Customer N2 utilisation tracking to 50% in 2Q26, 80% in 3Q26 and 100% in 4Q26, with N2 and N3 capacity up roughly 70% and 25% year on year",
+    "sources": [
+     "src-aem-fubon-20260907"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "sk-hynix",
+    "name": "SK hynix",
+    "ticker": "000660.KS",
+    "country": "Korea",
+    "layer": "die",
+    "component": "HBM",
+    "role": "High bandwidth memory",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "samsung",
+    "name": "Samsung",
+    "ticker": "005930.KS",
+    "country": "Korea",
+    "layer": "die",
+    "component": "HBM",
+    "role": "High bandwidth memory",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "micron",
+    "name": "Micron",
+    "ticker": "MU",
+    "country": "USA",
+    "layer": "die",
+    "component": "HBM",
+    "role": "HBM and DRAM. 2026 supply fully sold out, with the company stating it can meet only half to two-thirds of customer demand",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "FQ3 FY26 revenue around $42bn at over 81% gross margin, FQ4 guided near $50bn. $22bn of customer prepayments received and capex raised from $20bn to over $25bn. HBM4 revenue has passed $1bn and is ramping around twice as fast as HBM3E. 26 long-term agreements signed covering more than 35% of revenue to 2030, with more than 75% of 2027 output already committed. Singapore HBM advanced packaging starts in early 2027 and the Taiwan site ships mid-2027. Third of the three HBM suppliers by share",
+    "sources": [
+     "src-micron-2026-public",
+     "src-micron-fubon-20261001"
+    ],
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": true,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "id": "aem",
+    "name": "Advanced Echem Materials",
+    "ticker": "4749",
+    "country": "Taiwan",
+    "layer": "die",
+    "component": "Lithography materials",
+    "role": "Sole supplier of a rinse surface modifier used by foundry customers on every node below 40nm",
+    "capacity_note": "Kaohsiung phase one full by 1H27, phase two in volume mid-2027. Front-end semiconductor materials take three to five years from development through qualification",
+    "sources": [
+     "src-aem-fubon-20260907"
+    ],
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "id": "hanwha-semitech",
+    "name": "Hanwha Semitech",
+    "ticker": "272210.KS",
+    "country": "Korea",
+    "layer": "die",
+    "component": "Stacking and bonding tools",
+    "role": "SK hynix bonder partner. A commercial hybrid bonding launch depends on this class of equipment",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "id": "besi",
+    "name": "BE Semiconductor",
+    "ticker": "BESI",
+    "country": "Netherlands",
+    "layer": "die",
+    "component": "Hybrid bonding tools",
+    "role": "The main hybrid bonding equipment supplier, which is what stacking moves to after HBM4E",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "id": "asmpt",
+    "name": "ASMPT",
+    "ticker": "0522.HK",
+    "country": "Hong Kong",
+    "layer": "die",
+    "component": "Thermocompression bonding tools",
+    "role": "Thermocompression bonders, the tools behind today's mainstream HBM stacking",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "shin-etsu",
+    "name": "Shin-Etsu Chemical",
+    "ticker": "4063.T",
+    "country": "Japan",
+    "component": "Silicon wafer",
+    "role": "One of the two dominant wafer makers",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "sumco",
+    "name": "SUMCO",
+    "ticker": "3436.T",
+    "country": "Japan",
+    "component": "Silicon wafer",
+    "role": "One of the two dominant wafer makers",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "tel",
+    "name": "Tokyo Electron",
+    "ticker": "8035.T",
+    "country": "Japan",
+    "component": "Process equipment",
+    "role": "Coat and develop, etch, deposition and thermal, so it spans several steps",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "kokusai",
+    "name": "Kokusai Electric",
+    "ticker": "6525.T",
+    "country": "Japan",
+    "component": "Thermal process equipment",
+    "role": "Oxidation and batch thermal furnaces",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": true,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "asml",
+    "name": "ASML",
+    "ticker": "ASML",
+    "country": "Netherlands",
+    "component": "Lithography equipment",
+    "role": "The only source of EUV scanners anywhere, so every step down in linewidth runs through one company",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "lam",
+    "name": "Lam Research",
+    "ticker": "LRCX",
+    "country": "USA",
+    "component": "Etch and deposition",
+    "role": "Etch and deposition. Deep via etch is what makes TSVs possible",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "amat",
+    "name": "Applied Materials",
+    "ticker": "AMAT",
+    "country": "USA",
+    "component": "Deposition and metallisation",
+    "role": "The largest supplier of thin film deposition and metal wiring tools",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "advantest",
+    "name": "Advantest",
+    "ticker": "6857.T",
+    "country": "Japan",
+    "component": "Test equipment",
+    "role": "A main supplier of memory and SoC testers",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "teradyne",
+    "name": "Teradyne",
+    "ticker": "TER",
+    "country": "USA",
+    "component": "Test equipment",
+    "role": "A main supplier of testers",
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "layer": "die",
+    "id": "chipmos",
+    "name": "ChipMOS",
+    "ticker": "8150",
+    "country": "Taiwan",
+    "component": "Memory test",
+    "role": "Memory test and assembly. Wafer sort is the gate that finds the good dies before stacking",
+    "source_labels": []
+   }
+  ],
+  "pkg": [
+   {
+    "id": "tsmc-cowos",
+    "name": "TSMC",
+    "ticker": "2330",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "CoWoS",
+    "role": "Interposer manufacturing and 2.5D integration",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "ase",
+    "name": "ASE",
+    "ticker": "3711",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "OSAT",
+    "role": "Back-end assembly and test",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "amkor",
+    "name": "Amkor",
+    "ticker": "AMKR",
+    "country": "USA",
+    "layer": "pkg",
+    "component": "OSAT",
+    "role": "Back-end assembly and test",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "jentech",
+    "name": "Jentech Precision",
+    "ticker": "3653",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "Lids and stiffeners",
+    "role": "Largest maker of package-level thermal hardware. GPU lids, heat spreaders and stiffener rings. Rubin content runs three to four times B300",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "capacity_note": "One of four qualified suppliers for VR200 microchannel cold plates, alongside AVC, Cooler Master and Delta",
+    "sources": [
+     "src-jentech-jpm-20260316"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "allring",
+    "name": "All Ring Tech",
+    "ticker": "6187",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "Packaging equipment",
+    "role": "Dispensing and inspection equipment for CoWoS, and the dispensing supplier for TSMC SoIC wafer-on-wafer",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "capacity_note": "CoWoS and FoCoS equipment runs around 87% of 2026 revenue",
+    "sources": [
+     "src-allring-jpm-20260323",
+     "src-cpo-research-20260417"
+    ],
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "id": "intel-emib",
+    "name": "Intel",
+    "ticker": "INTC",
+    "country": "USA",
+    "layer": "pkg",
+    "component": "EMIB packaging",
+    "role": "The other 2.5D route besides CoWoS. The Google and MediaTek ASIC is reported to use EMIB-T",
+    "capacity_note": "Advanced packaging capacity reported to double in each of 2027 and 2028",
+    "sources": [
+     "src-mtk-fubon-20260731",
+     "src-intel-fubon-20260423",
+     "src-apmemory-fubon-20260423"
+    ],
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "id": "ptc",
+    "name": "Powertech Technology",
+    "ticker": "6239",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "Fan-out panel level",
+    "role": "FOPLP entering pilot qualification, volume targeted for mid-2027, also developing HBM packaging for customers",
+    "sources": [
+     "src-ptc-fubon-20260429"
+    ],
+    "source_labels": []
+   },
+   {
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "id": "apmemory",
+    "name": "AP Memory",
+    "ticker": "6531",
+    "country": "Taiwan",
+    "layer": "pkg",
+    "component": "Silicon capacitors",
+    "role": "Integrated passive device silicon capacitors, built at PSMC, working to qualify into EMIB and CoWoS packages",
+    "capacity_note": "IPD targeted at more than 35% of revenue next year",
+    "sources": [
+     "src-apmemory-fubon-20260423"
+    ],
+    "source_labels": []
+   }
+  ],
+  "sub": [
+   {
+    "id": "ajinomoto",
+    "name": "Ajinomoto",
+    "ticker": "2802.T",
+    "country": "Japan",
+    "layer": "sub",
+    "component": "ABF build-up film",
+    "role": "Build-up film. Essentially no qualified alternative",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": true,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "ibiden",
+    "name": "Ibiden",
+    "ticker": "4062.T",
+    "country": "Japan",
+    "layer": "sub",
+    "component": "ABF substrate",
+    "role": "ABF substrate. Capacity absorbed by AI GPUs and ASICs while also carrying the Intel EMIB ramp",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [
+     "src-nanya-pcb-fubon-20261002",
+     "src-mtk-fubon-20260731"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "shinko",
+    "name": "Shinko Electric",
+    "ticker": "6967.T",
+    "country": "Japan",
+    "layer": "sub",
+    "component": "ABF substrate",
+    "role": "Substrate manufacturing",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "unimicron",
+    "name": "Unimicron",
+    "ticker": "3037",
+    "country": "Taiwan",
+    "layer": "sub",
+    "component": "ABF substrate",
+    "role": "ABF and BT substrate. Yangmei and Luzhu both full, with customers prepaying to reserve capacity",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "Luzhu phase three starts 2H26, phase two volume in 2027, Yangmei fab two in 2028. Resonac and MGC price increases have been passed through. General-purpose servers account for an estimated 25-30% of ABF demand and AI servers 30-35%",
+    "sources": [
+     "src-unimicron-fubon-20260414",
+     "src-mtk-fubon-20260731"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "nanya-pcb",
+    "name": "Nan Ya PCB",
+    "ticker": "8046",
+    "country": "Taiwan",
+    "layer": "sub",
+    "component": "ABF substrate",
+    "role": "ABF and BT substrate. Picks up AMD Venice from 1Q27 as Ibiden and Unimicron capacity is taken by AI",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "2Q26 ABF utilisation 80-85%, BT full. Estimated to take more than half of Venice. ABF capacity up 5-10% in each of FY27 and FY28, mostly through debottlenecking. NT$46.8bn capex for a large-format CoPoS substrate fab, with the Chiayi site in volume around FY29",
+    "sources": [
+     "src-nanya-pcb-fubon-20261002",
+     "src-nanya-pcb-fubon-20260807"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "kinsus",
+    "name": "Kinsus Interconnect",
+    "ticker": "3189",
+    "country": "Taiwan",
+    "layer": "sub",
+    "component": "ABF substrate",
+    "role": "ABF substrate, expanding on the Nvidia Vera CPU ramp, estimated to take more than half of Vera in 2027",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "ABF capacity 40m units per month in FY26, 50m from 2Q27, 65m in FY28 and 80m in FY29. Qualifying a T-glass plus E-glass build. With T-glass, copper foil and ABF film all rising, quarterly price increases of 5-10% are expected",
+    "sources": [
+     "src-kinsus-fubon-20260924"
+    ],
+    "source_labels": []
+   }
+  ],
+  "pcb": [
+   {
+    "id": "gce",
+    "name": "Gold Circuit Electronics",
+    "ticker": "2368",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "PCB",
+    "role": "High layer count boards for servers and switches. Capacity up more than 25% since May and still short of demand",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "Combined capacity measured at NT$9.4bn of output value, against NT$7.5bn in May. AI-related was 40-50% of 2Q26. ASIC customers may move from HLC to a mixed HDI plus HLC build",
+    "sources": [
+     "src-gce-fubon-20260812"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "zdt",
+    "name": "Zhen Ding Technology",
+    "ticker": "4958",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "Flexible PCB",
+    "role": "Built on flex, now shifting weight toward IC substrate and server boards, with building 13 under construction and 16 in planning",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "low",
+    "qual_lead_time_months": null,
+    "capacity_note": "New capacity phased in from 2026 to 2030, with the company stating that expansion is contracted to customers. IC substrate estimated at 12% of revenue in 2027",
+    "sources": [
+     "src-zdt-fubon-20260811"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "iteq",
+    "name": "ITEQ",
+    "ticker": "6213",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "CCL",
+    "role": "The volume laminate supplier for general-purpose servers, concentrated on E-glass with M6 to M7 resin systems, holding more than 60% of the AMD platform",
+    "share_pct": null,
+    "share_scope": "範圍不同的兩個估計並存，高盛估 2024 年全球伺服器 CCL 市佔 15 到 20%，統一估 AMD 平台逾六成、Intel 平台三到四成，所以不填單一數字",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "Monthly capacity around 5.4m sheets in 2025, on a path to roughly 5.7m, 6.3m, 8.3m and 9.2m sheets through 2029. The 2.85m sheets added at Wuxi are dedicated to M7 and above. Utilisation held at 70-75% by E-glass supply. Industry treater lead times run 18 to 24 months. 4Q26 pricing up a further 15-20%, with fabric suppliers releasing small volumes that should lift utilisation toward 80%",
+    "sources": [
+     "src-iteq-fubon-20260929",
+     "src-iteq-kgi-20260807",
+     "src-iteq-fubon-20260807",
+     "src-iteq-uni-20260810",
+     "src-iteq-daiwa-20260807",
+     "src-iteq-gs-20260810"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "emc",
+    "name": "Elite Material",
+    "ticker": "2383",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "CCL",
+    "role": "The high-end laminate leader. M9 moving from single digit to double digit share of mix, and now shipping core material into ABF substrates",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "3Q26 revenue NT$60.9bn. 4Q26 pricing up 5-10% on average, with the steeper increases at M6 and below. High-end capacity expected to add 3.15m sheets per month in 2027. Substrate material was historically BT-based and under 1% of revenue",
+    "sources": [
+     "src-emc-fubon-20261006",
+     "src-iteq-gs-20260810"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "tuc",
+    "name": "Taiwan Union Technology",
+    "ticker": "6274",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "CCL",
+    "role": "High-end laminate. M7 and above is 36% of mix, utilisation full, M9 in final qualification",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "2.6m sheets per month exiting 2Q26, adding 600k each at Changshu and Thailand, reaching 3.8m by the end of 2027",
+    "sources": [
+     "src-tuc-fubon-20260408"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "fuchiao",
+    "name": "Fu Chiao (1815)",
+    "ticker": "1815",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "Glass fabric and yarn",
+    "role": "Integrated from yarn through fabric. Low DK1, Low DK2 and Low CTE all in production, with Taiwan and Dongguan weaving full",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "medium",
+    "qual_lead_time_months": null,
+    "capacity_note": "Two furnaces plus four electric furnaces and 920 looms. Thailand phase one of 400 looms starts in 3Q27 with initial output already reserved by customers, expanding to 500 in 2028. Toyota automatic looms for high-end fabric are quoting delivery into 2030. July pricing up 30% on E-glass and 15% on Low DK2",
+    "sources": [
+     "src-fuchiao-fubon-20260817"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "nittobo",
+    "name": "Nitto Boseki",
+    "ticker": "3110.T",
+    "country": "Japan",
+    "layer": "pcb",
+    "component": "Low-Dk glass fabric",
+    "role": "High-end glass reinforcement",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "",
+    "sources": [],
+    "source_labels": []
+   },
+   {
+    "id": "mitsui-mining",
+    "name": "Mitsui Kinzoku",
+    "ticker": "5706.T",
+    "country": "Japan",
+    "layer": "pcb",
+    "component": "HVLP copper foil",
+    "role": "The main Japanese HVLP supplier. Most of the installed base is still first generation, and usable capacity shrinks with every generation step",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": "high",
+    "qual_lead_time_months": null,
+    "capacity_note": "Around 620 t per month, predominantly HVLP1. Converted entirely to HVLP4 that same line yields only 320 t. Total capacity rises to 840 t after September 2026, which is still only 400-430 t if all of it runs HVLP4",
+    "sources": [
+     "src-copperfoil-unknown-2025"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "furukawa",
+    "name": "Furukawa Electric",
+    "ticker": "5801.T",
+    "country": "Japan",
+    "layer": "pcb",
+    "component": "HVLP copper foil",
+    "role": "One of the two main HVLP4 sources, and where Elite Material takes most of its HVLP4",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "capacity_note": "Mitsui and Furukawa combined ran roughly 350 t per month of HVLP4 in 2025, expanding to 450-550 t by the end of 2026, against 2026 demand of about 1,200 t per month",
+    "sources": [
+     "src-copperfoil-unknown-2025"
+    ],
+    "source_labels": []
+   },
+   {
+    "id": "co-tech",
+    "name": "Co-Tech Development",
+    "ticker": "8358",
+    "country": "Taiwan",
+    "layer": "pcb",
+    "component": "HVLP copper foil",
+    "role": "The Taiwanese HVLP foil maker, selling to Elite Material, Taiwan Union and ITEQ, ramping HVLP4 to close the Japanese shortfall",
+    "share_pct": null,
+    "share_scope": "",
+    "sole_source": false,
+    "concentration": null,
+    "qual_lead_time_months": null,
+    "capacity_note": "250 t per month across all foil, with 480 t of headroom at the third Yunlin plant. HVLP4 at 50-100 t per month, expected to reach 200-250 t during 2026. Foil equipment lead times run six months or more and new capacity takes 18 to 24 months to come online",
+    "sources": [
+     "src-copperfoil-unknown-2025"
+    ],
+    "source_labels": []
+   }
+  ]
+ },
+ "models": [
+  {
+   "id": "pcb-cost-structure",
+   "layer": "pcb",
+   "type": "cost_breakdown",
+   "name": "AI high-end PCB cost breakdown",
+   "unit": "佔上一層成本的百分比",
+   "root": {
+    "id": "pcb",
+    "name": "AI high-end PCB",
+    "pct": 100,
+    "group_label": "Board makers",
+    "supplier_ids": [
+     "gce",
+     "zdt"
+    ]
+   },
+   "nodes": [
+    {
+     "id": "ccl",
+     "name": "Copper clad laminate",
+     "parent": "pcb",
+     "pct_low": 45,
+     "pct_high": 60,
+     "supplier_ids": [
+      "iteq",
+      "emc",
+      "tuc"
+     ]
+    },
+    {
+     "id": "copper-foil",
+     "name": "Copper foil",
+     "parent": "ccl",
+     "pct": 40,
+     "pct_of_pcb_low": 18,
+     "pct_of_pcb_high": 24,
+     "supplier_ids": [
+      "mitsui-mining",
+      "furukawa",
+      "co-tech"
+     ]
+    },
+    {
+     "id": "epoxy-resin",
+     "name": "Epoxy resin",
+     "parent": "ccl",
+     "pct": 25,
+     "pct_of_pcb_low": 11,
+     "pct_of_pcb_high": 15,
+     "supplier_ids": []
+    },
+    {
+     "id": "fiberglass",
+     "name": "Glass fabric",
+     "parent": "ccl",
+     "pct": 20,
+     "pct_of_pcb_low": 9,
+     "pct_of_pcb_high": 12,
+     "supplier_ids": [
+      "fuchiao",
+      "nittobo"
+     ]
+    },
+    {
+     "id": "ccl-others",
+     "name": "Other",
+     "parent": "ccl",
+     "pct": 15,
+     "pct_of_pcb_low": 7,
+     "pct_of_pcb_high": 9,
+     "supplier_ids": []
+    }
+   ]
+  },
+  {
+   "id": "m6-to-m8-demand",
+   "layer": "pcb",
+   "type": "multiplier",
+   "name": "Demand amplification from a laminate grade step",
+   "unit": "相對 M6 的倍數",
+   "factors": [
+    "layers",
+    "area",
+    "yield_loss"
+   ],
+   "crucial_questions": [
+    "yield",
+    "size"
+   ],
+   "crucial_note": "Layer count is set by the design and is effectively known. Yield and size are the only two variables that move with process maturity, so those are the two questions that decide where in the range a programme lands.",
+   "scenarios": [
+    {
+     "id": "m6",
+     "grade": "M6",
+     "label": "baseline",
+     "layers": [
+      12,
+      16
+     ],
+     "layer_mult": 1,
+     "area": [
+      1,
+      1
+     ],
+     "yield_loss": [
+      1,
+      1
+     ],
+     "demand": [
+      1,
+      1
+     ]
+    },
+    {
+     "id": "m8",
+     "grade": "M8",
+     "label": "base case",
+     "layers": [
+      24,
+      32
+     ],
+     "layer_mult": 2,
+     "area": [
+      2,
+      2.5
+     ],
+     "yield_loss": [
+      1.15,
+      1.3
+     ],
+     "demand": [
+      4.6,
+      6.5
+     ],
+     "note": "Layer counts pair 12 to 24 and 16 to 32, not crosswise. Doubling layer count also doubles board thickness."
+    },
+    {
+     "id": "m8-gb300-max",
+     "grade": "M8",
+     "label": "GB300 largest board, upper bound",
+     "layers": [
+      40,
+      40
+     ],
+     "layer_mult": [
+      2.5,
+      3.33
+     ],
+     "area": [
+      3,
+      5
+     ],
+     "yield_loss": [
+      1.15,
+      1.3
+     ],
+     "demand": [
+      8.6,
+      21.6
+     ],
+     "note": "8.6 to 16.3× off a 16-layer base, 11.5 to 21.6× off a 12-layer base. This assumes three extremes land together, so it is a bound rather than a forecast and should be read separately from the base case."
+    }
+   ],
+   "downstream": {
+    "note": "層數加倍在物理上就是疊更多層銅箔，所以 CCL 用量倍數大致帶動高階銅箔用量同倍數。成本佔比與用量倍數是兩件事，此處能接是因為層數因子本身就是銅箔張數",
+    "links": [
+     "copper-foil",
+     "mitsui-mining",
+     "co-tech"
+    ]
+   }
+  },
+  {
+   "id": "dram-front-end",
+   "layer": "die",
+   "type": "process",
+   "name": "Semiconductor front-end process",
+   "root": {
+    "id": "hbm-stack",
+    "name": "HBM stack",
+    "sub": "12 DRAM + 1 base die",
+    "note": "A stack is only good if every die in it is good. Twelve dies in series is where the hard part of this chain lives.",
+    "supplier_ids": [
+     "sk-hynix",
+     "samsung",
+     "micron"
+    ]
+   },
+   "top": {
+    "id": "dram-die",
+    "name": "The dies in a stack",
+    "sub": "12 DRAM + 1 base die",
+    "note": "A stack holds two kinds of die. Twelve are DRAM, made on a memory process in the memory makers' own fabs. The thirteenth is the base die at the bottom, carrying the external interface and control logic. From HBM4 it moves off the memory process onto a foundry logic process, which opens an external link in what used to be a closed memory chain.",
+    "supplier_ids": []
+   },
+   "steps": [
+    {
+     "id": "wafer",
+     "idx": "01",
+     "name": "Wafer manufacturing",
+     "en": "Ingot, slicing, polishing",
+     "note": "Crystal growth, slicing, lapping and polish. HBM starts on the same silicon as any other DRAM. What changes is everything after.",
+     "supplier_ids": [
+      "shin-etsu",
+      "sumco"
+     ]
+    },
+    {
+     "id": "oxidation",
+     "idx": "02",
+     "name": "Oxidation",
+     "en": "Silicon dioxide growth",
+     "note": "Growing a silicon dioxide layer for insulation and protection. Almost every later step builds on it.",
+     "supplier_ids": [
+      "tel",
+      "kokusai"
+     ]
+    },
+    {
+     "id": "litho",
+     "idx": "03",
+     "name": "Photolithography",
+     "en": "Pattern transfer",
+     "note": "Projecting the circuit pattern onto resist. Linewidth is decided here, and EUV scanners come from exactly one company, which makes this the cleanest single point of dependency in the whole semiconductor chain.",
+     "supplier_ids": [
+      "asml",
+      "aem"
+     ]
+    },
+    {
+     "id": "etch",
+     "idx": "04",
+     "name": "Etching",
+     "en": "Material removal",
+     "note": "Removing what the resist does not protect. Through-silicon vias are cut by this class of process at aspect ratios far beyond ordinary structures, and it is part of why HBM takes longer in the fab.",
+     "supplier_ids": [
+      "lam",
+      "tel"
+     ]
+    },
+    {
+     "id": "deposition",
+     "idx": "05",
+     "name": "Deposition",
+     "en": "Thin film growth",
+     "note": "Building dielectric and metal layers one at a time. More layers means more passes through this step.",
+     "supplier_ids": [
+      "amat",
+      "lam",
+      "tel"
+     ]
+    },
+    {
+     "id": "metal",
+     "idx": "06",
+     "name": "Metal wiring",
+     "en": "Interconnect",
+     "note": "Connecting the devices. HBM through-silicon vias have to be filled with copper, which is harder and slower than ordinary DRAM metallisation.",
+     "supplier_ids": [
+      "amat",
+      "lam"
+     ]
+    },
+    {
+     "id": "eds",
+     "idx": "07",
+     "name": "Electric die sorting",
+     "en": "Wafer test",
+     "note": "Testing on the wafer before dicing to find the good dies. This matters more for HBM than for anything else, because stacking a bad die scraps all twelve.",
+     "supplier_ids": [
+      "advantest",
+      "teradyne",
+      "chipmos"
+     ]
+    }
+   ]
+  }
+ ],
+ "demand": {
+  "schema_version": 1,
+  "_comment": "需求推導用的機櫃規格。capacity 類數字取自 NVIDIA 官方規格頁，stacks_per_gpu 與 dies_per_stack 是由容量推導的參數不是官方揭露，confidence 標 3 並在 basis 寫明。改這裡的數字，頁面上的計算會跟著變。",
+  "driver_label": "預期年出貨機櫃數",
+  "presets": [
+   5000,
+   20000,
+   50000
+  ],
+  "default_racks": 20000,
+  "default_model": "gb300-nvl72",
+  "racks": [
+   {
+    "id": "gb200-nvl72",
+    "name": "GB200 NVL72",
+    "gen": "Blackwell",
+    "status": "in production",
+    "gpus_per_rack": 72,
+    "cpus_per_rack": 36,
+    "compute_trays": 18,
+    "switch_trays": 9,
+    "hbm_gen": "HBM3E",
+    "hbm_gb_per_gpu": 192,
+    "stacks_per_gpu": 8,
+    "dies_per_stack": 8,
+    "stack_height": "8-high",
+    "note": "The first NVL72 rack. 192 GB per GPU works out to roughly 13.8 TB across the rack.",
+    "confidence": 3,
+    "basis": "Capacity per GPU is public spec. Eight stacks per GPU and eight dies per stack are derived from capacity divided by the generation's per-stack size, not disclosed figures",
+    "sources": [],
+    "dies_per_package": 2,
+    "lpddr_gb_per_cpu": 480,
+    "gpus_per_tray": 4,
+    "gb_per_stack": 24
+   },
+   {
+    "id": "gb300-nvl72",
+    "name": "GB300 NVL72",
+    "gen": "Blackwell Ultra",
+    "status": "in production",
+    "gpus_per_rack": 72,
+    "cpus_per_rack": 36,
+    "compute_trays": 18,
+    "switch_trays": 9,
+    "hbm_gen": "HBM3E",
+    "hbm_gb_per_gpu": 288,
+    "stacks_per_gpu": 8,
+    "dies_per_stack": 12,
+    "stack_height": "12-high",
+    "note": "Physically each GPU sits next to 8 HBM3E stacks, 12 layers each at 3 GB a layer, which is 288 GB. That is what the memory maker actually ships. NVIDIA's spec page lists 279 GB, the capacity a user can address, and 279 times 72 is exactly the 20 TB it quotes for the rack. The missing 9 GB is not explained officially. Industry reading points to reserved capacity or a layer switched off for yield, neither confirmed. The cascade uses 288, because that 9 GB of silicon still got made.",
+    "confidence": 3,
+    "basis": "72 GPUs and 20 TB per rack come from NVIDIA's rack spec page. 288 GB per GPU comes from NVIDIA's enterprise reference architecture, which separately lists 2304 GB across an eight-GPU baseboard, and 2304 divided by eight is exactly 288. The 36 GB, 12-high, 24 Gb-per-die stack is Micron's own HBM3E product specification, confirmed by a TechInsights teardown of a physical B300 package. Neither company states stacks per GPU. Eight falls out of 288 divided by 36, so it is not an assumption but two companies' published figures reconciling.",
+    "sources": [
+     "src-nvidia-gb300-spec",
+     "src-nvidia-refarch-b300",
+     "src-techinsights-b300-hbm"
+    ],
+    "hbm_gb_usable": 279,
+    "dies_per_package": 2,
+    "lpddr_gb_per_cpu": 480,
+    "gpus_per_tray": 4,
+    "gb_per_stack": 36
+   },
+   {
+    "id": "vr-nvl72",
+    "name": "Vera Rubin NVL72",
+    "gen": "Rubin",
+    "status": "2H 2026",
+    "gpus_per_rack": 72,
+    "cpus_per_rack": 36,
+    "compute_trays": 18,
+    "switch_trays": 9,
+    "hbm_gen": "HBM4",
+    "hbm_gb_per_gpu": 288,
+    "stacks_per_gpu": 8,
+    "dies_per_stack": 12,
+    "stack_height": "12-high",
+    "note": "Moves to HBM4, where the interface doubles from 1024 to 2048 bits. The GPU package is a dual-die design and the rack carries 20.7 TB, which divided by 72 is about 288 GB, so this generation shows none of the gap between physical and usable capacity that GB300 does. Micron has announced HBM4 in high volume production for Vera Rubin.",
+    "confidence": 3,
+    "basis": "288 GB per GPU and 20.7 TB per rack are public reporting. The 36 GB 12-high stack is from Micron's HBM4 volume production announcement. Eight stacks follows from 288 divided by 36. Micron is also sampling a 48 GB 16-high part, and a switch to that would change the stack count per GPU.",
+    "sources": [
+     "src-micron-hbm4-12h"
+    ],
+    "hbm_gb_usable": null,
+    "dies_per_package": 2,
+    "lpddr_gb_per_cpu": null,
+    "gpus_per_tray": 4,
+    "gb_per_stack": 36
+   },
+   {
+    "id": "vr-ultra-nvl576",
+    "name": "Rubin Ultra NVL576",
+    "gen": "Rubin Ultra",
+    "status": "2H 2027, spec not final",
+    "gpus_per_rack": 144,
+    "cpus_per_rack": 36,
+    "compute_trays": 18,
+    "switch_trays": 9,
+    "hbm_gen": "HBM4E",
+    "hbm_gb_per_gpu": 1024,
+    "stacks_per_gpu": 16,
+    "dies_per_stack": 16,
+    "stack_height": "16-high",
+    "note": "NVL576 counts 576 compute dies at four dies per package, so there are 144 packages. Each package carries 1 TB of HBM4E. This generation is still moving, so treat the numbers as order of magnitude.",
+    "confidence": 3,
+    "basis": "Forward-looking public reporting, not final. Stacks and dies per stack are derived, not disclosed",
+    "sources": [],
+    "dies_per_package": 4,
+    "lpddr_gb_per_cpu": null,
+    "gpus_per_tray": 8,
+    "gb_per_stack": 64
+   }
+  ]
+ }
+}

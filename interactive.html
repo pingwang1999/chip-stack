@@ -1,0 +1,1097 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="alternate" type="text/markdown" href="index.md"></head><body>
+<title>AI Chip Packaging Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700;900&amp;display=swap">
+<style>
+:root{
+  --bg:#E6E9ED; --surface:#FFFFFF; --surface-2:#F1F3F6;
+  --ink:#131820; --ink-2:#525E6B; --ink-3:#8A95A1;
+  --line:#D0D6DD; --line-strong:#B3BCC6;
+  --accent:#A85B27; --accent-wash:#F4E4D6;
+  --mat-die:#39485A; --mat-hbm:#4E6072; --mat-interposer:#78889A;
+  --mat-abf:#CBBBA1; --mat-abf-core:#B6A388;
+  --mat-pcb:#2C5B45; --mat-pcb-2:#3E7259;
+  --mat-copper:#A85B27; --mat-solder:#98A2AD;
+  --ok:#2F6E4E; --warn:#9A6A16; --crit:#9C3A2E;
+  --step:.32s cubic-bezier(.4,0,.2,1);
+  --sans:Calibri,Carlito,"Noto Sans TC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101419; --surface:#181D24; --surface-2:#20262F;
+    --ink:#E6EAEE; --ink-2:#9EA9B4; --ink-3:#6B7681;
+    --line:#2A313A; --line-strong:#3C444E;
+    --accent:#D98B4A; --accent-wash:#33241A;
+    --mat-die:#5A6B7E; --mat-hbm:#71839A; --mat-interposer:#94A3B4;
+    --mat-abf:#B8A78D; --mat-abf-core:#9E8D74;
+    --mat-pcb:#3D7A5C; --mat-pcb-2:#519472;
+    --mat-copper:#D98B4A; --mat-solder:#8C97A3;
+    --ok:#5DAE83; --warn:#D2A047; --crit:#DE7A6A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101419; --surface:#181D24; --surface-2:#20262F;
+  --ink:#E6EAEE; --ink-2:#9EA9B4; --ink-3:#6B7681;
+  --line:#2A313A; --line-strong:#3C444E;
+  --accent:#D98B4A; --accent-wash:#33241A;
+  --mat-die:#5A6B7E; --mat-hbm:#71839A; --mat-interposer:#94A3B4;
+  --mat-abf:#B8A78D; --mat-abf-core:#9E8D74;
+  --mat-pcb:#3D7A5C; --mat-pcb-2:#519472;
+  --mat-copper:#D98B4A; --mat-solder:#8C97A3;
+  --ok:#5DAE83; --warn:#D2A047; --crit:#DE7A6A;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 24px 64px}
+.crumb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;margin-bottom:14px}
+.crumb .sep{opacity:.5}
+.crumb .here{color:var(--accent);font-weight:500}
+.crumb .ghost{opacity:.6}
+h1{font-size:clamp(26px,3.6vw,38px);font-weight:900;letter-spacing:-.015em;margin:0 0 10px;text-wrap:balance;line-height:1.2}
+.lede{max-width:62ch;color:var(--ink-2);margin:0 0 22px;font-size:15.5px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0 20px;border-top:1px solid var(--line)}
+button.ctl{font-family:var(--sans);font-size:13.5px;font-weight:500;background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:3px;padding:7px 14px;cursor:pointer;transition:background var(--step),border-color var(--step),color var(--step)}
+button.ctl:hover{border-color:var(--accent);color:var(--accent)}
+button.ctl[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#FFF8F2}
+button.ctl:focus-visible,.layer:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.hint{font-size:12.5px;color:var(--ink-3);margin-left:auto;font-family:var(--mono);letter-spacing:.03em}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 4px 4px;position:relative;overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.layer{cursor:pointer;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity var(--step)}
+.layer:hover .lbl-name{fill:var(--accent)}
+.stage.has-sel .layer{opacity:.34}
+.stage.has-sel .layer.sel{opacity:1}
+.halo{fill:none;stroke:var(--accent);stroke-width:1.6;opacity:0;transition:opacity var(--step)}
+.layer.sel .halo{opacity:1}
+.leader{stroke:var(--line-strong);stroke-width:1;stroke-dasharray:2 3}
+.layer.sel .leader{stroke:var(--accent);stroke-dasharray:none}
+.lbl-idx{font-family:var(--mono);font-size:11px;fill:var(--ink-3);letter-spacing:.08em}
+.layer.sel .lbl-idx{fill:var(--accent)}
+.lbl-name{font-family:var(--sans);font-size:15px;font-weight:700;fill:var(--ink);transition:fill var(--step)}
+.layer.sel .lbl-name{fill:var(--accent)}
+.lbl-sub{font-family:var(--mono);font-size:10.5px;fill:var(--ink-3);letter-spacing:.03em}
+.scale-txt{font-family:var(--mono);font-size:10px;fill:var(--ink-3);letter-spacing:.05em}
+.exploded #g-die{transform:translateY(-88px)}
+.exploded #g-pkg{transform:translateY(-38px)}
+.exploded #g-sub{transform:translateY(22px)}
+.exploded #g-pcb{transform:translateY(82px)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001s!important}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:22px;position:sticky;top:20px}
+@media (max-width:920px){.panel{position:static}}
+.p-swatch{width:34px;height:5px;border-radius:1px;margin-bottom:14px}
+.p-idx{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.p-title{font-size:22px;font-weight:900;letter-spacing:-.01em;margin:4px 0 2px;line-height:1.25}
+.p-en{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.04em;margin-bottom:16px}
+dl.spec{display:grid;grid-template-columns:auto 1fr;gap:9px 16px;margin:0 0 20px;align-items:baseline}
+dl.spec dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;color:var(--ink-3);text-transform:uppercase;white-space:nowrap}
+dl.spec dd{margin:0;font-size:14px}
+.sec-h{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);padding-top:16px;border-top:1px solid var(--line);margin-bottom:12px;display:flex;gap:10px;align-items:center}
+.sec-h .count{color:var(--accent)}
+ul.sup{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:9px}
+ul.sup li{display:flex;gap:10px;align-items:baseline;font-size:14px;line-height:1.45}
+.flag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;border:1px solid var(--line-strong);border-radius:2px;padding:1px 5px;color:var(--ink-3);flex:none;transform:translateY(-1px)}
+.sup-role{color:var(--ink-3);font-size:12.5px}
+.sole{color:var(--crit);font-weight:500}
+.conc{color:var(--warn);font-size:12.5px}
+.src{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.04em;display:block;margin-top:1px}
+.src.missing{color:var(--ink-3);opacity:.75}
+.note{background:var(--surface-2);border-left:2px solid var(--accent);padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--ink-2);margin-bottom:16px}
+.cover{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2)}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.dot.yes{background:var(--ok)}
+.dot.no{background:var(--line-strong)}
+.foot{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px;font-size:13px;color:var(--ink-2);line-height:1.6}
+.foot h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;font-weight:400}
+.foot ol,.foot ul{margin:0;padding-left:18px}
+.foot li{margin-bottom:5px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--accent)}
+.stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+
+/* ---- cost model: validated categorical palette (light) ---- */
+:root{--cat-1:#B25A17;--cat-2:#00875A;--cat-3:#3360B8;--cat-4:#91487E;
+  --seq-1:#DCE5EC;--seq-2:#BECDDA;--seq-3:#A0B5C7;--seq-4:#8299B2;--seq-5:#65809C;--seq-6:#486784;--seq-7:#30506C}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --cat-1:#C97529;--cat-2:#00A077;--cat-3:#5581DA;--cat-4:#C46DA6;
+  --seq-1:#2B4258;--seq-2:#3A5872;--seq-3:#4A6E8C;--seq-4:#5E86A6;--seq-5:#789FBE;--seq-6:#94B8D3;--seq-7:#B2D1E6}}
+:root[data-theme="dark"]{--cat-1:#C97529;--cat-2:#00A077;--cat-3:#5581DA;--cat-4:#C46DA6;
+  --seq-1:#2B4258;--seq-2:#3A5872;--seq-3:#4A6E8C;--seq-4:#5E86A6;--seq-5:#789FBE;--seq-6:#94B8D3;--seq-7:#B2D1E6}
+
+.model{margin-top:2px}
+.share-line{display:flex;align-items:baseline;gap:8px;font-size:13.5px;margin-bottom:6px}
+.share-line b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--accent);font-weight:500}
+.rng-track{position:relative;height:10px;background:var(--surface-2);border-radius:3px;margin-bottom:16px}
+.rng-band{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:3px;opacity:.85}
+.rng-tick{position:absolute;top:12px;font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+
+.bar-track{display:flex;height:28px;gap:2px;margin:4px 0 14px}
+.seg{position:relative;border:0;padding:0;cursor:default;transition:filter var(--step)}
+.seg:first-child{border-radius:3px 0 0 3px}
+.seg:last-child{border-radius:0 3px 3px 0}
+.seg:hover,.seg:focus-visible{filter:brightness(1.14);outline:none}
+.seg span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:10.5px;color:#FFFCF8;font-variant-numeric:tabular-nums}
+
+.keyrow{display:flex;flex-direction:column;gap:9px;margin-bottom:6px}
+.keyrow .k{display:grid;grid-template-columns:12px 1fr auto;gap:9px;align-items:baseline;font-size:13.5px}
+.sw{width:11px;height:11px;border-radius:2px;transform:translateY(2px)}
+.k-sub{grid-column:2/4;font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:-5px}
+.k-of{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.scn{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap}
+.scn button{font-family:var(--sans);font-size:12.5px;padding:5px 11px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);border-radius:3px;cursor:pointer;transition:background var(--step),color var(--step),border-color var(--step)}
+.scn button:hover{border-color:var(--accent);color:var(--accent)}
+.scn button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#FFF8F2}
+.scn button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.factors{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.fact{background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:7px 11px;min-width:76px}
+.fact .fl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;display:block;margin-bottom:2px}
+.fact .fv{font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;display:block}
+.fact .fn{font-family:var(--mono);font-size:10px;color:var(--ink-3);display:block}
+.times{align-self:center;font-family:var(--mono);color:var(--ink-3);font-size:14px}
+.hero{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.hero .hv{font-size:30px;font-weight:900;letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+.hero .hl{font-size:13px;color:var(--ink-2)}
+
+.cmp{display:flex;flex-direction:column;gap:9px;margin:2px 0 10px}
+.cmp-row{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center}
+.cmp-name{font-size:12.5px;color:var(--ink-2);line-height:1.3}
+.cmp-track{position:relative;height:18px;background:var(--surface-2);border-radius:3px}
+.cmp-band{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:3px}
+.cmp-band.muted{background:var(--line-strong)}
+.cmp-val.on-band{color:#FFF8F2}
+.cmp-val{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.cap{font-size:12.5px;color:var(--ink-3);line-height:1.6;margin:8px 0 0}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.5;padding:7px 10px;border-radius:3px;max-width:240px;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip b{font-weight:600}
+
+.col-left{display:flex;flex-direction:column;gap:18px;min-width:0}
+.drill{padding:16px 18px 18px}
+.drill h2{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px;font-weight:400}
+.drill .sub{font-size:12.5px;color:var(--ink-3);margin:0 0 6px}
+.drill svg{display:block;width:100%;height:auto}
+.dstep{opacity:0;transform:translateX(-14px);transition:opacity .42s cubic-bezier(.4,0,.2,1),transform .42s cubic-bezier(.4,0,.2,1)}
+.dstep.in{opacity:1;transform:none}
+.dnode{cursor:pointer}
+.dnode .plate{transition:filter var(--step)}
+.dnode:hover .plate{filter:brightness(1.08)}
+.dnode:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.dring{fill:none;stroke:var(--accent);stroke-width:1.6;opacity:0;transition:opacity var(--step)}
+.dnode.on .dring{opacity:1}
+.dlbl{font-family:var(--sans);font-size:13px;font-weight:700;fill:var(--ink)}
+.dnode:hover .dlbl,.dnode.on .dlbl{fill:var(--accent)}
+.dsub{font-family:var(--mono);font-size:10px;fill:var(--ink-3);letter-spacing:.03em}
+.dpct{font-family:var(--mono);font-size:11.5px;fill:var(--ink-2);letter-spacing:.02em}
+.dpct.on-plate{fill:#FFFCF8;font-size:12.5px}
+.darrow{stroke:var(--line-strong);stroke-width:1.4;fill:none}
+.dhint{font-family:var(--mono);font-size:10px;fill:var(--accent);letter-spacing:.06em}
+.demand{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:20px 22px 22px;margin-top:18px}
+.demand h2{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px;font-weight:400}
+.demand .sub{font-size:13px;color:var(--ink-3);margin:0 0 14px;max-width:70ch}
+.dm-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;align-items:start}
+.dm-head{margin-bottom:2px}
+.dm-name{font-size:21px;font-weight:900;letter-spacing:-.01em;line-height:1.2}
+.dm-cap{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);line-height:1.6;margin:2px 0 0;letter-spacing:.02em}
+@media (max-width:760px){.dm-grid{grid-template-columns:1fr}}
+.dm-rack svg{display:block;width:100%;height:auto;margin:-6px 0 -10px}
+.dm-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:4px}
+.dm-meta .g{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.05em}
+.dm-meta .st{font-family:var(--mono);font-size:10px;letter-spacing:.06em;border:1px solid var(--line-strong);border-radius:2px;padding:1px 5px;color:var(--ink-3)}
+.dm-input{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.dm-input label{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.dm-input input{font-family:var(--mono);font-size:16px;width:132px;padding:6px 10px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums}
+.dm-input input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.dm-input .pre{font-family:var(--mono);font-size:11.5px;padding:4px 9px;border:1px solid var(--line);border-radius:3px;background:var(--surface-2);color:var(--ink-2);cursor:pointer}
+.dm-input .pre:hover{border-color:var(--accent);color:var(--accent)}
+.dm-chain{display:flex;align-items:stretch;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.dm-second{border-top:1px dashed var(--line);margin-top:4px}
+.dm-second .hv{font-size:19px}
+.dm-heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;padding-top:4px;border-top:1px solid var(--line)}
+.dm-hero .hv{font-size:25px;font-weight:900;letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.15;display:block;margin-top:10px}
+.dm-hero .hl{font-size:12.5px;color:var(--ink-2);display:block;margin-top:2px}
+.tagx{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);border-radius:2px;padding:0 4px;margin-left:5px}
+.dsup{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.dsup .grp{margin-bottom:0}
+.dcard{display:grid;grid-template-columns:12px 1fr;gap:10px;align-items:baseline;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:3px;background:var(--surface-2);padding:11px 13px;margin-top:12px;font-size:13.5px}
+.dcard .dc-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dcard .dc-n{font-weight:700}
+.dcard .dc-p{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.dcard .dc-s{font-family:var(--mono);font-size:11px;color:var(--ink-3);display:block;margin-top:4px;line-height:1.5}
+@media (prefers-reduced-motion:reduce){.dstep{transition:none;opacity:1;transform:none}}
+
+.grp{margin-bottom:15px}
+.grp-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}
+.grp-h .sw{width:10px;height:10px;border-radius:2px;transform:none;flex:none}
+.grp-h .lvl{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--ink-3);text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:0 4px}
+.grp-h .n{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-left:auto;font-variant-numeric:tabular-nums}
+.grp.empty .grp-h{font-weight:500;color:var(--ink-3)}
+.grp ul.sup{margin:0;padding-left:16px;border-left:1px solid var(--line)}
+.grp-empty{font-size:12.5px;color:var(--ink-3);padding-left:16px;border-left:1px solid var(--line)}
+</style>
+
+
+<div class="wrap">
+
+  <nav class="crumb" id="crumb" aria-label="所在層級"></nav>
+  <h1 id="title">AI Chip Packaging Stack</h1>
+  <p class="lede" id="lede">A signal leaving the GPU die crosses four carriers before it reaches the motherboard. Each one is built from a different material set, and each one has a different supply base. Click any layer to see what it is made of, who makes it, and where it binds.</p>
+
+  <div class="toolbar">
+    <button class="ctl" id="btn-explode" aria-pressed="true">Explode view</button>
+    <button class="ctl" id="btn-reset">Reset</button>
+    <span class="hint" id="stamp">Updated 2026-10-23 · Layers are schematic, not to scale</span>
+  </div>
+
+  <div class="grid">
+    <div class="col-left">
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 760 560" role="img" aria-label="晶片封裝四層剖面互動圖" class="exploded">
+        <g aria-hidden="true">
+          <line x1="20" y1="196" x2="20" y2="412" stroke="var(--line-strong)" stroke-width="1"></line>
+          <line x1="16" y1="196" x2="24" y2="196" stroke="var(--line-strong)" stroke-width="1"></line>
+          <line x1="16" y1="412" x2="24" y2="412" stroke="var(--line-strong)" stroke-width="1"></line>
+          <text class="scale-txt" x="26" y="308" transform="rotate(-90 26 308)" text-anchor="middle">SIGNAL PATH</text>
+        </g>
+
+        <g id="g-pcb" class="layer" data-key="pcb" tabindex="0" role="button" aria-label="Layer 04 PCB motherboard">
+          <rect x="36" y="356" width="456" height="56" rx="1" fill="var(--mat-pcb)"></rect>
+          <rect x="36" y="356" width="456" height="56" rx="1" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <g stroke="var(--mat-copper)" stroke-width="2.5" opacity=".85">
+            <line x1="52" y1="368" x2="476" y2="368"></line><line x1="52" y1="380" x2="330" y2="380"></line>
+            <line x1="360" y1="380" x2="476" y2="380"></line><line x1="52" y1="392" x2="476" y2="392"></line>
+            <line x1="52" y1="403" x2="250" y2="403"></line><line x1="286" y1="403" x2="476" y2="403"></line>
+          </g>
+          <g fill="var(--mat-pcb-2)"><rect x="330" y="366" width="30" height="16" rx="1"></rect><rect x="250" y="399" width="36" height="9" rx="1"></rect></g>
+          <rect class="halo" x="32" y="352" width="464" height="64" rx="2"></rect>
+          <line class="leader" x1="500" y1="384" x2="512" y2="384"></line>
+          <text class="lbl-idx" x="518" y="374">04</text>
+          <text class="lbl-name" x="518" y="392">PCB motherboard</text>
+          <text class="lbl-sub" x="518" y="408">CCL · copper · glass · resin</text>
+        </g>
+
+        <g id="g-sub" class="layer" data-key="sub" tabindex="0" role="button" aria-label="Layer 03 IC substrate">
+          <g fill="var(--mat-solder)">
+            <circle cx="90" cy="345" r="7"></circle><circle cx="140" cy="345" r="7"></circle><circle cx="190" cy="345" r="7"></circle><circle cx="240" cy="345" r="7"></circle>
+            <circle cx="290" cy="345" r="7"></circle><circle cx="340" cy="345" r="7"></circle><circle cx="390" cy="345" r="7"></circle><circle cx="440" cy="345" r="7"></circle>
+          </g>
+          <rect x="72" y="294" width="384" height="44" rx="1" fill="var(--mat-abf)"></rect>
+          <rect x="72" y="310" width="384" height="12" fill="var(--mat-abf-core)"></rect>
+          <rect x="72" y="294" width="384" height="44" rx="1" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <g stroke="var(--mat-copper)" stroke-width="2" opacity=".9">
+            <line x1="86" y1="301" x2="442" y2="301"></line><line x1="86" y1="331" x2="442" y2="331"></line>
+          </g>
+          <g fill="var(--mat-copper)" opacity=".9">
+            <path d="M154 301 l7 0 l-2.4 9 l-2.2 0 z"></path><path d="M228 301 l7 0 l-2.4 9 l-2.2 0 z"></path>
+            <path d="M302 301 l7 0 l-2.4 9 l-2.2 0 z"></path><path d="M376 301 l7 0 l-2.4 9 l-2.2 0 z"></path>
+            <path d="M191 331 l7 0 l-2.4 -9 l-2.2 0 z"></path><path d="M265 331 l7 0 l-2.4 -9 l-2.2 0 z"></path><path d="M339 331 l7 0 l-2.4 -9 l-2.2 0 z"></path>
+          </g>
+          <g fill="var(--mat-solder)">
+            <circle cx="120" cy="289" r="5"></circle><circle cx="160" cy="289" r="5"></circle><circle cx="200" cy="289" r="5"></circle><circle cx="240" cy="289" r="5"></circle>
+            <circle cx="280" cy="289" r="5"></circle><circle cx="320" cy="289" r="5"></circle><circle cx="360" cy="289" r="5"></circle><circle cx="400" cy="289" r="5"></circle>
+          </g>
+          <rect class="halo" x="68" y="282" width="392" height="72" rx="2"></rect>
+          <line class="leader" x1="464" y1="316" x2="512" y2="316"></line>
+          <text class="lbl-idx" x="518" y="306">03</text>
+          <text class="lbl-name" x="518" y="324">IC substrate</text>
+          <text class="lbl-sub" x="518" y="340">ABF film · no glass reinforcement</text>
+        </g>
+
+        <g id="g-pkg" class="layer" data-key="pkg" tabindex="0" role="button" aria-label="Layer 02 Advanced packaging">
+          <rect x="100" y="262" width="328" height="22" rx="1" fill="var(--mat-interposer)"></rect>
+          <rect x="100" y="262" width="328" height="22" rx="1" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <g fill="var(--mat-copper)">
+            <rect x="126" y="262" width="3.5" height="22"></rect><rect x="160" y="262" width="3.5" height="22"></rect><rect x="194" y="262" width="3.5" height="22"></rect>
+            <rect x="228" y="262" width="3.5" height="22"></rect><rect x="262" y="262" width="3.5" height="22"></rect><rect x="296" y="262" width="3.5" height="22"></rect>
+            <rect x="330" y="262" width="3.5" height="22"></rect><rect x="364" y="262" width="3.5" height="22"></rect><rect x="398" y="262" width="3.5" height="22"></rect>
+          </g>
+          <g fill="var(--mat-solder)">
+            <rect x="128" y="256" width="5" height="6"></rect><rect x="146" y="256" width="5" height="6"></rect><rect x="164" y="256" width="5" height="6"></rect>
+            <rect x="182" y="256" width="5" height="6"></rect><rect x="222" y="256" width="5" height="6"></rect><rect x="242" y="256" width="5" height="6"></rect>
+            <rect x="262" y="256" width="5" height="6"></rect><rect x="282" y="256" width="5" height="6"></rect><rect x="302" y="256" width="5" height="6"></rect>
+            <rect x="322" y="256" width="5" height="6"></rect><rect x="352" y="256" width="5" height="6"></rect><rect x="370" y="256" width="5" height="6"></rect>
+            <rect x="388" y="256" width="5" height="6"></rect><rect x="406" y="256" width="5" height="6"></rect>
+          </g>
+          <rect class="halo" x="96" y="252" width="336" height="36" rx="2"></rect>
+          <line class="leader" x1="436" y1="272" x2="512" y2="272"></line>
+          <text class="lbl-idx" x="518" y="262">02</text>
+          <text class="lbl-name" x="518" y="280">Advanced packaging</text>
+          <text class="lbl-sub" x="518" y="296">CoWoS · interposer · TSV</text>
+        </g>
+
+        <g id="g-die" class="layer" data-key="die" tabindex="0" role="button" aria-label="Layer 01 Die &amp; HBM">
+          <rect x="124" y="204" width="76" height="52" fill="var(--mat-hbm)"></rect>
+          <g stroke="var(--surface)" stroke-width="1.4" opacity=".55">
+            <line x1="124" y1="217" x2="200" y2="217"></line><line x1="124" y1="230" x2="200" y2="230"></line><line x1="124" y1="243" x2="200" y2="243"></line>
+          </g>
+          <rect x="124" y="204" width="76" height="52" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <rect x="212" y="194" width="120" height="62" fill="var(--mat-die)"></rect>
+          <rect x="212" y="194" width="120" height="62" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <g stroke="var(--mat-copper)" stroke-width="1" opacity=".5">
+            <line x1="226" y1="206" x2="318" y2="206"></line><line x1="226" y1="216" x2="318" y2="216"></line><line x1="226" y1="226" x2="318" y2="226"></line>
+            <line x1="226" y1="236" x2="318" y2="236"></line><line x1="226" y1="246" x2="318" y2="246"></line>
+          </g>
+          <rect x="344" y="204" width="76" height="52" fill="var(--mat-hbm)"></rect>
+          <g stroke="var(--surface)" stroke-width="1.4" opacity=".55">
+            <line x1="344" y1="217" x2="420" y2="217"></line><line x1="344" y1="230" x2="420" y2="230"></line><line x1="344" y1="243" x2="420" y2="243"></line>
+          </g>
+          <rect x="344" y="204" width="76" height="52" fill="none" stroke="var(--line-strong)" stroke-width="1"></rect>
+          <text class="lbl-sub" x="272" y="186" text-anchor="middle">GPU DIE</text>
+          <text class="lbl-sub" x="162" y="196" text-anchor="middle">HBM</text>
+          <text class="lbl-sub" x="382" y="196" text-anchor="middle">HBM</text>
+          <rect class="halo" x="118" y="190" width="308" height="70" rx="2"></rect>
+          <line class="leader" x1="430" y1="226" x2="512" y2="226"></line>
+          <text class="lbl-idx" x="518" y="216">01</text>
+          <text class="lbl-name" x="518" y="234">Die &amp; HBM</text>
+          <text class="lbl-sub" x="518" y="250">Silicon · TSV die stacking</text>
+        </g>
+      </svg>
+    </div>
+
+    <section class="stage drill" id="drill" hidden="" aria-label="成本往下拆解"></section>
+    </div>
+
+    <aside class="panel" id="panel" aria-live="polite">
+    <div class="p-idx">Start here</div>
+    <div class="p-title">Four carriers, four material chains</div>
+    <div class="p-en">SELECT A LAYER</div>
+    <div class="note">PCB is often lumped in with chip packaging. It does not belong there. The substrate runs on build-up film with no glass reinforcement. The PCB runs on copper clad laminate, pressed from copper foil, resin and glass fabric. The two chains barely share a supplier.</div>
+    <div class="sec-h">How to read it</div>
+    <ul class="sup"><li><span class="flag">01</span><span>Click any layer on the left and the panel shows what it is made of and who supplies it</span></li><li><span class="flag">02</span><span>Explode view separates the four carriers so you can see how they sit</span></li><li><span class="flag">03</span><span>Red marks a single-source dependency, which is where impact analysis starts</span></li></ul></aside>
+  </div>
+
+  <section class="demand" id="demand" aria-label="需求推導"><h2>Demand cascade</h2>
+    <p class="sub">Pick a rack, set how many ship in a year, and the chain works down to the HBM stacks and DRAM dies behind them. The number you set is a scenario, not a forecast.</p>
+    <div class="scn" id="dm-models"><button type="button" data-m="gb200-nvl72" aria-pressed="true">GB200 NVL72</button><button type="button" data-m="gb300-nvl72" aria-pressed="false">GB300 NVL72</button><button type="button" data-m="vr-nvl72" aria-pressed="false">Vera Rubin NVL72</button><button type="button" data-m="vr-ultra-nvl576" aria-pressed="false">Rubin Ultra NVL576</button></div>
+    <div class="dm-grid">
+      <div class="dm-rack">
+        <div class="dm-head">
+          <div class="dm-name">GB200 NVL72</div>
+          <div class="dm-meta"><span class="g">Blackwell · HBM3E</span>
+            <span class="st">in production</span></div>
+        </div>
+        <svg viewBox="0 0 392 300" role="img" aria-label="GB200 NVL72 package"><polygon points="196.0,55.0 386.5,165.0 196.0,275.0 5.5,165.0" fill="var(--mat-pcb-2)"></polygon><polygon points="5.5,165.0 196.0,275.0 196.0,282.0 5.5,172.0" fill="var(--mat-pcb)" fill-opacity=".95"></polygon><polygon points="386.5,165.0 196.0,275.0 196.0,282.0 386.5,172.0" fill="var(--mat-pcb)" fill-opacity=".74"></polygon><polygon points="196.0,55.0 386.5,165.0 196.0,275.0 5.5,165.0" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="196.0,64.0 358.8,158.0 196.0,252.0 33.2,158.0" fill="var(--mat-abf)"></polygon><polygon points="33.2,158.0 196.0,252.0 196.0,259.0 33.2,165.0" fill="var(--mat-abf-core)" fill-opacity=".95"></polygon><polygon points="358.8,158.0 196.0,252.0 196.0,259.0 358.8,165.0" fill="var(--mat-abf-core)" fill-opacity=".74"></polygon><polygon points="196.0,64.0 358.8,158.0 196.0,252.0 33.2,158.0" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="196.0,78.0 327.6,154.0 196.0,230.0 64.4,154.0" fill="var(--mat-interposer)"></polygon><polygon points="64.4,154.0 196.0,230.0 196.0,234.0 64.4,158.0" fill="var(--mat-interposer)" fill-opacity=".95"></polygon><polygon points="327.6,154.0 196.0,230.0 196.0,234.0 327.6,158.0" fill="var(--mat-interposer)" fill-opacity=".74"></polygon><polygon points="196.0,78.0 327.6,154.0 196.0,230.0 64.4,154.0" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="193.4,62.9 221.1,78.9 198.6,91.9 170.9,75.9" fill="var(--mat-hbm)"></polygon><polygon points="170.9,75.9 198.6,91.9 198.6,111.5 170.9,95.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="221.1,78.9 198.6,91.9 198.6,111.5 221.1,98.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="170.9,93.0 198.6,109.0 221.1,96.0" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,90.6 198.6,106.6 221.1,93.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,88.2 198.6,104.2 221.1,91.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,85.7 198.6,101.7 221.1,88.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,83.3 198.6,99.3 221.1,86.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,80.8 198.6,96.8 221.1,83.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,78.3 198.6,94.3 221.1,81.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="193.4,62.9 221.1,78.9 198.6,91.9 170.9,75.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="166.6,87.0 227.6,122.3 158.3,162.3 97.3,127.0" fill="#C9D2DA"></polygon><polygon points="97.3,127.0 158.3,162.3 158.3,173.3 97.3,138.0" fill="var(--mat-die)" fill-opacity=".95"></polygon><polygon points="227.6,122.3 158.3,162.3 158.3,173.3 227.6,133.3" fill="var(--mat-die)" fill-opacity=".74"></polygon><polygon points="166.6,87.0 227.6,122.3 158.3,162.3 97.3,127.0" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="226.3,81.9 254.0,97.9 231.5,110.9 203.8,94.9" fill="var(--mat-hbm)"></polygon><polygon points="203.8,94.9 231.5,110.9 231.5,130.5 203.8,114.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="254.0,97.9 231.5,110.9 231.5,130.5 254.0,117.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="203.8,112.0 231.5,128.1 254.0,115.0" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,109.6 231.5,125.6 254.0,112.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,107.2 231.5,123.2 254.0,110.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,104.7 231.5,120.7 254.0,107.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,102.3 231.5,118.3 254.0,105.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,99.8 231.5,115.8 254.0,102.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="203.8,97.3 231.5,113.3 254.0,100.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="226.3,81.9 254.0,97.9 231.5,110.9 203.8,94.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="259.2,100.9 286.9,116.9 264.4,129.9 236.7,113.9" fill="var(--mat-hbm)"></polygon><polygon points="236.7,113.9 264.4,129.9 264.4,149.5 236.7,133.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="286.9,116.9 264.4,129.9 264.4,149.5 286.9,136.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="236.7,131.1 264.4,147.1 286.9,134.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,128.6 264.4,144.6 286.9,131.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,126.2 264.4,142.2 286.9,129.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,123.7 264.4,139.7 286.9,126.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,121.3 264.4,137.3 286.9,124.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,118.8 264.4,134.8 286.9,121.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="236.7,116.3 264.4,132.3 286.9,119.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="259.2,100.9 286.9,116.9 264.4,129.9 236.7,113.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="231.9,124.8 293.0,160.0 223.7,200.0 162.7,164.8" fill="#C9D2DA"></polygon><polygon points="162.7,164.8 223.7,200.0 223.7,211.0 162.7,175.8" fill="var(--mat-die)" fill-opacity=".95"></polygon><polygon points="293.0,160.0 223.7,200.0 223.7,211.0 293.0,171.0" fill="var(--mat-die)" fill-opacity=".74"></polygon><polygon points="231.9,124.8 293.0,160.0 223.7,200.0 162.7,164.8" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="292.1,119.9 319.8,135.9 297.3,148.9 269.6,132.9" fill="var(--mat-hbm)"></polygon><polygon points="269.6,132.9 297.3,148.9 297.3,168.5 269.6,152.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="319.8,135.9 297.3,148.9 297.3,168.5 319.8,155.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="269.6,150.1 297.3,166.1 319.8,153.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,147.6 297.3,163.6 319.8,150.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,145.2 297.3,161.2 319.8,148.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,142.7 297.3,158.7 319.8,145.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,140.3 297.3,156.3 319.8,143.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,137.8 297.3,153.8 319.8,140.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="269.6,135.3 297.3,151.3 319.8,138.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="292.1,119.9 319.8,135.9 297.3,148.9 269.6,132.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="94.7,119.9 122.4,135.9 99.9,148.9 72.2,132.9" fill="var(--mat-hbm)"></polygon><polygon points="72.2,132.9 99.9,148.9 99.9,168.5 72.2,152.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="122.4,135.9 99.9,148.9 99.9,168.5 122.4,155.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="72.2,150.1 99.9,166.1 122.4,153.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,147.6 99.9,163.6 122.4,150.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,145.2 99.9,161.2 122.4,148.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,142.7 99.9,158.7 122.4,145.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,140.3 99.9,156.3 122.4,143.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,137.8 99.9,153.8 122.4,140.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="72.2,135.3 99.9,151.3 122.4,138.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="94.7,119.9 122.4,135.9 99.9,148.9 72.2,132.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="127.6,138.9 155.3,154.9 132.8,167.9 105.1,151.9" fill="var(--mat-hbm)"></polygon><polygon points="105.1,151.9 132.8,167.9 132.8,187.5 105.1,171.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="155.3,154.9 132.8,167.9 132.8,187.5 155.3,174.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="105.1,169.1 132.8,185.1 155.3,172.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,166.6 132.8,182.6 155.3,169.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,164.2 132.8,180.2 155.3,167.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,161.7 132.8,177.7 155.3,164.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,159.3 132.8,175.3 155.3,162.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,156.8 132.8,172.8 155.3,159.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="105.1,154.3 132.8,170.3 155.3,157.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="127.6,138.9 155.3,154.9 132.8,167.9 105.1,151.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="160.5,157.9 188.2,173.9 165.7,186.9 138.0,170.9" fill="var(--mat-hbm)"></polygon><polygon points="138.0,170.9 165.7,186.9 165.7,206.5 138.0,190.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="188.2,173.9 165.7,186.9 165.7,206.5 188.2,193.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="138.0,188.1 165.7,204.1 188.2,191.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,185.6 165.7,201.6 188.2,188.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,183.2 165.7,199.2 188.2,186.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,180.7 165.7,196.7 188.2,183.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,178.3 165.7,194.3 188.2,181.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,175.8 165.7,191.8 188.2,178.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="138.0,173.3 165.7,189.3 188.2,176.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="160.5,157.9 188.2,173.9 165.7,186.9 138.0,170.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon><polygon points="193.4,176.9 221.1,192.9 198.6,205.9 170.9,189.9" fill="var(--mat-hbm)"></polygon><polygon points="170.9,189.9 198.6,205.9 198.6,225.5 170.9,209.5" fill="var(--mat-hbm)" fill-opacity=".95"></polygon><polygon points="221.1,192.9 198.6,205.9 198.6,225.5 221.1,212.5" fill="var(--mat-hbm)" fill-opacity=".74"></polygon><polyline points="170.9,207.1 198.6,223.1 221.1,210.1" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,204.6 198.6,220.6 221.1,207.6" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,202.2 198.6,218.2 221.1,205.2" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,199.7 198.6,215.7 221.1,202.7" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,197.3 198.6,213.3 221.1,200.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,194.8 198.6,210.8 221.1,197.8" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polyline points="170.9,192.3 198.6,208.3 221.1,195.3" fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"></polyline><polygon points="193.4,176.9 221.1,192.9 198.6,205.9 170.9,189.9" fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"></polygon></svg>
+        <p class="dm-cap">2 compute dies per package, 8 HBM stacks around them, 8 layers each</p>
+      </div>
+      <div>
+        <div class="dm-input">
+          <label for="dm-n">Racks shipped per year</label>
+          <input id="dm-n" type="number" min="0" step="1000" value="20000">
+          <button type="button" class="pre" data-v="5000">5,000</button><button type="button" class="pre" data-v="20000">20,000</button><button type="button" class="pre" data-v="50000">50,000</button>
+        </div>
+        <div class="dm-chain"><div class="fact"><span class="fl">Racks</span>
+      <span class="fv">20,000</span></div><span class="times">×</span><div class="fact"><span class="fl">GPU packages per rack<span class="tagx">spec</span></span>
+      <span class="fv">72</span><span class="fn">HBM3E 192 GB</span></div><span class="times">×</span><div class="fact"><span class="fl">HBM stacks per GPU<span class="tagx">reconciled</span></span>
+      <span class="fv">8</span><span class="fn">288 ÷ 36 GB</span></div><span class="times">×</span><div class="fact"><span class="fl">DRAM dies per stack<span class="tagx">spec</span></span>
+      <span class="fv">8</span><span class="fn">8-high · 24 GB</span></div></div>
+        <div class="dm-heroes">
+          <div class="dm-hero"><span class="hv">11,520,000</span><span class="hl">HBM stacks required</span></div>
+          <div class="dm-hero"><span class="hv">92,160,000</span><span class="hl">DRAM dies required</span></div>
+          <div class="dm-hero"><span class="hv">276.5 PB</span><span class="hl">total HBM capacity</span></div>
+          <div class="dm-hero"><span class="hv">2.21 Eb</span><span class="hl">HBM bits</span></div>
+        </div>
+        <p class="cap">Memory makers size demand in bits, not units. Die density changes every node, so only bits compare across generations. 1 Eb is a billion Gb.</p>
+        <div class="dm-heroes dm-second">
+          <div class="dm-hero"><span class="hv">345.6 PB</span><span class="hl">CPU memory, up to 480 GB each</span></div>
+          <div class="dm-hero"><span class="hv">2.76 Eb</span><span class="hl">LPDDR5X bits</span></div>
+        </div>
+        <p class="cap">The same rack also consumes LPDDR5X on the CPU side. In bits the two are close in size, but HBM burns several times the wafer per bit, which is where the gap opens once you convert to capacity.</p>
+        <p class="cap">The first NVL72 rack. 192 GB per GPU works out to roughly 13.8 TB across the rack.</p>
+        <p class="cap">Capacity per GPU is public spec. Eight stacks per GPU and eight dies per stack are derived from capacity divided by the generation's per-stack size, not disclosed figures</p>
+      </div>
+    </div></section>
+
+  <div class="foot" id="foot"><div><h3>Why four layers</h3><p>The numbering is not a taxonomy. It is the order the signal actually travels. Moving outward from the die, pad pitch widens by roughly an order of magnitude at every step, and the material set changes with it. 01 is innermost, 04 is the board.</p></div><div><h3>What this is</h3><p>A working map of the AI chip packaging supply chain, built bottom-up from company filings and sell-side research on the Taiwan and Japan supply base. The cost model on the PCB layer is my own derivation.</p></div><div><h3>Where it goes next</h3><p>Impact analysis. Each node carries concentration, sole-source status and qualification lead time, so a capacity or pricing event can be traced through to how many racks it gates and how long a substitution would take.</p></div></div>
+
+</div>
+
+<script>
+const PAYLOAD = {"meta": {"title": "AI Chip Packaging Stack", "lede": "A signal leaving the GPU die crosses four carriers before it reaches the motherboard. Each one is built from a different material set, and each one has a different supply base. Click any layer to see what it is made of, who makes it, and where it binds.", "context_path": ["GB300 NVL72 rack", "Compute tray", "Package stack", "Materials & suppliers"], "built_at": "2026-10-23", "lang": "en", "demo": true, "stamp": "Updated 2026-10-23"}, "ui": {"explode": "Explode view", "reset": "Reset", "notToScale": "Layers are schematic, not to scale", "signalPath": "SIGNAL PATH", "stamp": "更新於 {date} · 出處 {src} 份 · 供應商 {sup} 筆", "stampDemo": "Updated {date}", "soleSource": "sole source", "concentrated": "highly concentrated", "qualMonths": "~{n} mo qualification", "sourcePrefix": "出處 ", "noSource": "尚無出處，內容為結構骨架", "homeIdx": "Start here", "homeTitle": "Four carriers, four material chains", "homeEn": "SELECT A LAYER", "homeNote": "PCB is often lumped in with chip packaging. It does not belong there. The substrate runs on build-up film with no glass reinforcement. The PCB runs on copper clad laminate, pressed from copper foil, resin and glass fabric. The two chains barely share a supplier.", "howTo": "How to read it", "how": ["Click any layer on the left and the panel shows what it is made of and who supplies it", "Explode view separates the four carriers so you can see how they sit", "Red marks a single-source dependency, which is where impact analysis starts"], "layerN": "Layer {n}", "suppliers": "Suppliers", "suppliersInDrill": "Grouped by position in the chain. Click any block in the drill-down below to see who supplies it.", "bottleneck": "Where it binds", "costTable": "Cost breakdown in numbers", "shareOf": "{a} as a share of {b} cost", "noSupplierData": "No supplier data yet", "layerNoSuppliers": "No supplier data for this layer yet", "factors": ["Layers", "Area", "Yield loss"], "unitLayers": " layers", "unitX": "×", "demandVsM6": "CCL demand relative to M6", "drillTitle": "Drill down", "drillHintClosed": "Click {top} to open it up", "drillHintOpen": "Click a block to see who supplies it", "drillOpenHint": "open it up →", "pctOfDash": "{lo}–{hi}% of {b}", "pctOfTo": "{lo} to {hi}% of {b}", "pctOfTop": "{p}% of {a}", "cost100": "100% of cost", "lvlFinished": "finished", "lvlBase": "base material", "lvlRaw": "raw material", "lvlStep": "process step", "dmTitle": "Demand cascade", "dmSub": "Pick a rack, set how many ship in a year, and the chain works down to the HBM stacks and DRAM dies behind them. The number you set is a scenario, not a forecast.", "dmDriver": "Racks shipped per year", "dmRacks": "Racks", "dmGpuPer": "GPU packages per rack", "dmStackPer": "HBM stacks per GPU", "dmDiePer": "DRAM dies per stack", "dmSpec": "spec", "dmUsable": "usable", "dmPkgCaption": "{d} compute dies per package, {s} HBM stacks around them, {l} layers each", "dmDerived": "derived", "dmXcheck": "reconciled", "dmStackFrom": "288 ÷ 36 GB", "dmOutStacks": "HBM stacks required", "dmOutDies": "DRAM dies required", "dmOutCap": "total HBM capacity", "dmOutBits": "HBM bits", "dmBitsNote": "Memory makers size demand in bits, not units. Die density changes every node, so only bits compare across generations. 1 Eb is a billion Gb.", "dmOutLp": "CPU memory, up to {n} GB each", "dmOutLpBits": "LPDDR5X bits", "dmLpNote": "The same rack also consumes LPDDR5X on the CPU side. In bits the two are close in size, but HBM burns several times the wafer per bit, which is where the gap opens once you convert to capacity.", "drillHintStep": "Click any step to see the tools and materials behind it", "other": "Other", "noMaterialSup": "No supplier mapped to this material yet", "supplierPrefix": "Suppliers ", "coverYes": "資料夾裡有 {n} 份報告對應到這一層", "coverNo": "尚無對應報告，內容為結構骨架", "foot": [{"h": "Why four layers", "p": ["The numbering is not a taxonomy. It is the order the signal actually travels. Moving outward from the die, pad pitch widens by roughly an order of magnitude at every step, and the material set changes with it. 01 is innermost, 04 is the board."]}, {"h": "What this is", "p": ["A working map of the AI chip packaging supply chain, built bottom-up from company filings and sell-side research on the Taiwan and Japan supply base. The cost model on the PCB layer is my own derivation."]}, {"h": "Where it goes next", "p": ["Impact analysis. Each node carries concentration, sole-source status and qualification lead time, so a capacity or pricing event can be traced through to how many racks it gates and how long a substitution would take."]}], "countries": {"台灣": "Taiwan", "日本": "Japan", "韓國": "Korea", "美國": "USA", "中國": "China", "荷蘭": "Netherlands", "香港": "Hong Kong", "新加坡": "Singapore", "德國": "Germany"}}, "layers": [{"id": "die", "idx": "01", "name": "Die & HBM", "en": "LOGIC DIE AND HIGH BANDWIDTH MEMORY", "swatch": "var(--mat-die)", "spec": [{"k": "Full name", "v": "Logic die and high bandwidth memory"}, {"k": "Position", "v": "Innermost layer, where the signal starts"}, {"k": "Purpose", "v": "Compute itself, plus memory sitting right next to it"}, {"k": "Function", "v": "Logic operations and data staging"}, {"k": "Materials", "v": "Silicon wafer. HBM is a vertical stack of DRAM dies joined by through-silicon vias"}], "note": "HBM is the only thing on this map that sits in layer 01 and layer 02 at the same time. It needs a leading-edge DRAM process to make the dies and advanced packaging to stack twelve of them, so its supply behaves unlike the rest of memory. Neither gate opening is enough on its own. Micron has put a number on that with its three-to-one input ratio, meaning HBM3E consumes roughly three times the wafer of DDR5 for the same capacity, and has said the ratio rises in later generations. Add 2026 supply already sold out against a stated ability to meet only half to two-thirds of customer demand, and the gap is not something capex alone closes.", "note_confidence": 2, "note_basis": "富邦整理的美光 2026 年 10 月法說", "note_sources": ["src-micron-fubon-20261001"], "tagline": "Silicon · TSV die stacking", "coverage": null}, {"id": "pkg", "idx": "02", "name": "Advanced packaging", "en": "ADVANCED PACKAGING / COWOS", "swatch": "var(--mat-interposer)", "spec": [{"k": "Full name", "v": "Advanced packaging, 2.5D integration"}, {"k": "Position", "v": "Between the die and the substrate"}, {"k": "Purpose", "v": "Puts the GPU die and several HBM stacks on one common base"}, {"k": "Function", "v": "Very short reach, very high bandwidth die-to-die interconnect"}, {"k": "Materials", "v": "Silicon interposer or redistribution layer, through-silicon vias, microbumps, underfill, molding compound"}], "note": "This is the layer the industry agrees has been tightest. What binds here is not process yield the way it would be in a fab. It is physical interposer capacity and the time it takes to stand up more of it.", "note_confidence": 3, "note_basis": "初始骨架，尚未綁定出處", "tagline": "CoWoS · interposer · TSV", "coverage": null}, {"id": "sub", "idx": "03", "name": "IC substrate", "en": "IC SUBSTRATE / ABF", "swatch": "var(--mat-abf)", "spec": [{"k": "Full name", "v": "IC substrate, ABF substrate at the high end"}, {"k": "Position", "v": "Between the package and the board"}, {"k": "Purpose", "v": "Fans the fine package pitch out to something the board can actually attach to"}, {"k": "Function", "v": "Signal fan-out, mechanical support, part of the thermal path"}, {"k": "Materials", "v": "ABF build-up film carries no glass. The core layer is a glass-reinforced laminate. Plus copper foil, laser-drilled vias and solder balls"}], "note": "Substrate pricing moves on the same line as PCB. The core of an ABF substrate is itself a laminate, Kinsus is qualifying a T-glass plus E-glass build, and Elite Material has started shipping core material into substrates. So when glass fabric and copper foil tighten, substrates tighten with them. Unimicron and Ibiden capacity is absorbed by AI GPUs and ASICs, which is why the next-generation AMD server CPU substrate went to Nan Ya PCB.", "note_confidence": 2, "note_basis": "核心層材料見台光電與景碩速報，產能排擠見南電 10 月速報，均為富邦", "note_sources": ["src-emc-fubon-20261006", "src-kinsus-fubon-20260924", "src-nanya-pcb-fubon-20261002"], "tagline": "ABF film · no glass reinforcement", "coverage": null}, {"id": "pcb", "idx": "04", "name": "PCB motherboard", "en": "PRINTED CIRCUIT BOARD", "swatch": "var(--mat-pcb)", "spec": [{"k": "Full name", "v": "Printed circuit board"}, {"k": "Position", "v": "Outermost carrier"}, {"k": "Purpose", "v": "Carries the modules, distributes power, routes signal off-board"}, {"k": "Function", "v": "Signal transmission and power delivery"}, {"k": "Materials", "v": "Copper clad laminate, pressed from copper foil, resin and glass fabric, bonded layer to layer with prepreg"}], "note": "The tightest input this year is not an exotic one. It is ordinary E-glass fabric, up more than 80% in the first half, which has held laminate makers at around 70-75% utilisation with order books they cannot fill. High-end copper foil tells the same story, with HVLP4 demand well above what the Japanese incumbents plus Co-Tech can put out. Look one step further up and the real gate is equipment. High-end looms are quoting into 2030 and treaters run 18 to 24 months, so how fast this layer expands is decided by the machine builders.", "note_confidence": 2, "note_basis": "E-glass 漲幅八成以上見大和與高盛，稼動率 70 到 75% 見凱基、統一、大和，織布機交期見富邦富喬速報，上膠機交期見統一，HVLP4 缺口見未具名銅箔報告", "note_sources": ["src-iteq-daiwa-20260807", "src-iteq-gs-20260810", "src-iteq-kgi-20260807", "src-iteq-uni-20260810", "src-fuchiao-fubon-20260817", "src-copperfoil-unknown-2025"], "tagline": "CCL · copper · glass · resin", "coverage": null}], "suppliers": {"die": [{"id": "tsmc-logic", "name": "TSMC", "ticker": "2330", "country": "Taiwan", "layer": "die", "component": "Logic die", "role": "Leading-edge logic foundry", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "Customer N2 utilisation tracking to 50% in 2Q26, 80% in 3Q26 and 100% in 4Q26, with N2 and N3 capacity up roughly 70% and 25% year on year", "sources": ["src-aem-fubon-20260907"], "source_labels": []}, {"id": "sk-hynix", "name": "SK hynix", "ticker": "000660.KS", "country": "Korea", "layer": "die", "component": "HBM", "role": "High bandwidth memory", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "samsung", "name": "Samsung", "ticker": "005930.KS", "country": "Korea", "layer": "die", "component": "HBM", "role": "High bandwidth memory", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "micron", "name": "Micron", "ticker": "MU", "country": "USA", "layer": "die", "component": "HBM", "role": "HBM and DRAM. 2026 supply fully sold out, with the company stating it can meet only half to two-thirds of customer demand", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "FQ3 FY26 revenue around $42bn at over 81% gross margin, FQ4 guided near $50bn. $22bn of customer prepayments received and capex raised from $20bn to over $25bn. HBM4 revenue has passed $1bn and is ramping around twice as fast as HBM3E. 26 long-term agreements signed covering more than 35% of revenue to 2030, with more than 75% of 2027 output already committed. Singapore HBM advanced packaging starts in early 2027 and the Taiwan site ships mid-2027. Third of the three HBM suppliers by share", "sources": ["src-micron-2026-public", "src-micron-fubon-20261001"], "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": true, "concentration": "high", "qual_lead_time_months": null, "id": "aem", "name": "Advanced Echem Materials", "ticker": "4749", "country": "Taiwan", "layer": "die", "component": "Lithography materials", "role": "Sole supplier of a rinse surface modifier used by foundry customers on every node below 40nm", "capacity_note": "Kaohsiung phase one full by 1H27, phase two in volume mid-2027. Front-end semiconductor materials take three to five years from development through qualification", "sources": ["src-aem-fubon-20260907"], "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "id": "hanwha-semitech", "name": "Hanwha Semitech", "ticker": "272210.KS", "country": "Korea", "layer": "die", "component": "Stacking and bonding tools", "role": "SK hynix bonder partner. A commercial hybrid bonding launch depends on this class of equipment", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "id": "besi", "name": "BE Semiconductor", "ticker": "BESI", "country": "Netherlands", "layer": "die", "component": "Hybrid bonding tools", "role": "The main hybrid bonding equipment supplier, which is what stacking moves to after HBM4E", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "id": "asmpt", "name": "ASMPT", "ticker": "0522.HK", "country": "Hong Kong", "layer": "die", "component": "Thermocompression bonding tools", "role": "Thermocompression bonders, the tools behind today's mainstream HBM stacking", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "shin-etsu", "name": "Shin-Etsu Chemical", "ticker": "4063.T", "country": "Japan", "component": "Silicon wafer", "role": "One of the two dominant wafer makers", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "sumco", "name": "SUMCO", "ticker": "3436.T", "country": "Japan", "component": "Silicon wafer", "role": "One of the two dominant wafer makers", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "tel", "name": "Tokyo Electron", "ticker": "8035.T", "country": "Japan", "component": "Process equipment", "role": "Coat and develop, etch, deposition and thermal, so it spans several steps", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "kokusai", "name": "Kokusai Electric", "ticker": "6525.T", "country": "Japan", "component": "Thermal process equipment", "role": "Oxidation and batch thermal furnaces", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": true, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "asml", "name": "ASML", "ticker": "ASML", "country": "Netherlands", "component": "Lithography equipment", "role": "The only source of EUV scanners anywhere, so every step down in linewidth runs through one company", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "lam", "name": "Lam Research", "ticker": "LRCX", "country": "USA", "component": "Etch and deposition", "role": "Etch and deposition. Deep via etch is what makes TSVs possible", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "amat", "name": "Applied Materials", "ticker": "AMAT", "country": "USA", "component": "Deposition and metallisation", "role": "The largest supplier of thin film deposition and metal wiring tools", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "advantest", "name": "Advantest", "ticker": "6857.T", "country": "Japan", "component": "Test equipment", "role": "A main supplier of memory and SoC testers", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "teradyne", "name": "Teradyne", "ticker": "TER", "country": "USA", "component": "Test equipment", "role": "A main supplier of testers", "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "layer": "die", "id": "chipmos", "name": "ChipMOS", "ticker": "8150", "country": "Taiwan", "component": "Memory test", "role": "Memory test and assembly. Wafer sort is the gate that finds the good dies before stacking", "source_labels": []}], "pkg": [{"id": "tsmc-cowos", "name": "TSMC", "ticker": "2330", "country": "Taiwan", "layer": "pkg", "component": "CoWoS", "role": "Interposer manufacturing and 2.5D integration", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "ase", "name": "ASE", "ticker": "3711", "country": "Taiwan", "layer": "pkg", "component": "OSAT", "role": "Back-end assembly and test", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "amkor", "name": "Amkor", "ticker": "AMKR", "country": "USA", "layer": "pkg", "component": "OSAT", "role": "Back-end assembly and test", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "jentech", "name": "Jentech Precision", "ticker": "3653", "country": "Taiwan", "layer": "pkg", "component": "Lids and stiffeners", "role": "Largest maker of package-level thermal hardware. GPU lids, heat spreaders and stiffener rings. Rubin content runs three to four times B300", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "capacity_note": "One of four qualified suppliers for VR200 microchannel cold plates, alongside AVC, Cooler Master and Delta", "sources": ["src-jentech-jpm-20260316"], "source_labels": []}, {"id": "allring", "name": "All Ring Tech", "ticker": "6187", "country": "Taiwan", "layer": "pkg", "component": "Packaging equipment", "role": "Dispensing and inspection equipment for CoWoS, and the dispensing supplier for TSMC SoIC wafer-on-wafer", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "capacity_note": "CoWoS and FoCoS equipment runs around 87% of 2026 revenue", "sources": ["src-allring-jpm-20260323", "src-cpo-research-20260417"], "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "id": "intel-emib", "name": "Intel", "ticker": "INTC", "country": "USA", "layer": "pkg", "component": "EMIB packaging", "role": "The other 2.5D route besides CoWoS. The Google and MediaTek ASIC is reported to use EMIB-T", "capacity_note": "Advanced packaging capacity reported to double in each of 2027 and 2028", "sources": ["src-mtk-fubon-20260731", "src-intel-fubon-20260423", "src-apmemory-fubon-20260423"], "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "id": "ptc", "name": "Powertech Technology", "ticker": "6239", "country": "Taiwan", "layer": "pkg", "component": "Fan-out panel level", "role": "FOPLP entering pilot qualification, volume targeted for mid-2027, also developing HBM packaging for customers", "sources": ["src-ptc-fubon-20260429"], "source_labels": []}, {"share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "id": "apmemory", "name": "AP Memory", "ticker": "6531", "country": "Taiwan", "layer": "pkg", "component": "Silicon capacitors", "role": "Integrated passive device silicon capacitors, built at PSMC, working to qualify into EMIB and CoWoS packages", "capacity_note": "IPD targeted at more than 35% of revenue next year", "sources": ["src-apmemory-fubon-20260423"], "source_labels": []}], "sub": [{"id": "ajinomoto", "name": "Ajinomoto", "ticker": "2802.T", "country": "Japan", "layer": "sub", "component": "ABF build-up film", "role": "Build-up film. Essentially no qualified alternative", "share_pct": null, "share_scope": "", "sole_source": true, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "ibiden", "name": "Ibiden", "ticker": "4062.T", "country": "Japan", "layer": "sub", "component": "ABF substrate", "role": "ABF substrate. Capacity absorbed by AI GPUs and ASICs while also carrying the Intel EMIB ramp", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": ["src-nanya-pcb-fubon-20261002", "src-mtk-fubon-20260731"], "source_labels": []}, {"id": "shinko", "name": "Shinko Electric", "ticker": "6967.T", "country": "Japan", "layer": "sub", "component": "ABF substrate", "role": "Substrate manufacturing", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "unimicron", "name": "Unimicron", "ticker": "3037", "country": "Taiwan", "layer": "sub", "component": "ABF substrate", "role": "ABF and BT substrate. Yangmei and Luzhu both full, with customers prepaying to reserve capacity", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "Luzhu phase three starts 2H26, phase two volume in 2027, Yangmei fab two in 2028. Resonac and MGC price increases have been passed through. General-purpose servers account for an estimated 25-30% of ABF demand and AI servers 30-35%", "sources": ["src-unimicron-fubon-20260414", "src-mtk-fubon-20260731"], "source_labels": []}, {"id": "nanya-pcb", "name": "Nan Ya PCB", "ticker": "8046", "country": "Taiwan", "layer": "sub", "component": "ABF substrate", "role": "ABF and BT substrate. Picks up AMD Venice from 1Q27 as Ibiden and Unimicron capacity is taken by AI", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "2Q26 ABF utilisation 80-85%, BT full. Estimated to take more than half of Venice. ABF capacity up 5-10% in each of FY27 and FY28, mostly through debottlenecking. NT$46.8bn capex for a large-format CoPoS substrate fab, with the Chiayi site in volume around FY29", "sources": ["src-nanya-pcb-fubon-20261002", "src-nanya-pcb-fubon-20260807"], "source_labels": []}, {"id": "kinsus", "name": "Kinsus Interconnect", "ticker": "3189", "country": "Taiwan", "layer": "sub", "component": "ABF substrate", "role": "ABF substrate, expanding on the Nvidia Vera CPU ramp, estimated to take more than half of Vera in 2027", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "ABF capacity 40m units per month in FY26, 50m from 2Q27, 65m in FY28 and 80m in FY29. Qualifying a T-glass plus E-glass build. With T-glass, copper foil and ABF film all rising, quarterly price increases of 5-10% are expected", "sources": ["src-kinsus-fubon-20260924"], "source_labels": []}], "pcb": [{"id": "gce", "name": "Gold Circuit Electronics", "ticker": "2368", "country": "Taiwan", "layer": "pcb", "component": "PCB", "role": "High layer count boards for servers and switches. Capacity up more than 25% since May and still short of demand", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "Combined capacity measured at NT$9.4bn of output value, against NT$7.5bn in May. AI-related was 40-50% of 2Q26. ASIC customers may move from HLC to a mixed HDI plus HLC build", "sources": ["src-gce-fubon-20260812"], "source_labels": []}, {"id": "zdt", "name": "Zhen Ding Technology", "ticker": "4958", "country": "Taiwan", "layer": "pcb", "component": "Flexible PCB", "role": "Built on flex, now shifting weight toward IC substrate and server boards, with building 13 under construction and 16 in planning", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "low", "qual_lead_time_months": null, "capacity_note": "New capacity phased in from 2026 to 2030, with the company stating that expansion is contracted to customers. IC substrate estimated at 12% of revenue in 2027", "sources": ["src-zdt-fubon-20260811"], "source_labels": []}, {"id": "iteq", "name": "ITEQ", "ticker": "6213", "country": "Taiwan", "layer": "pcb", "component": "CCL", "role": "The volume laminate supplier for general-purpose servers, concentrated on E-glass with M6 to M7 resin systems, holding more than 60% of the AMD platform", "share_pct": null, "share_scope": "範圍不同的兩個估計並存，高盛估 2024 年全球伺服器 CCL 市佔 15 到 20%，統一估 AMD 平台逾六成、Intel 平台三到四成，所以不填單一數字", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "Monthly capacity around 5.4m sheets in 2025, on a path to roughly 5.7m, 6.3m, 8.3m and 9.2m sheets through 2029. The 2.85m sheets added at Wuxi are dedicated to M7 and above. Utilisation held at 70-75% by E-glass supply. Industry treater lead times run 18 to 24 months. 4Q26 pricing up a further 15-20%, with fabric suppliers releasing small volumes that should lift utilisation toward 80%", "sources": ["src-iteq-fubon-20260929", "src-iteq-kgi-20260807", "src-iteq-fubon-20260807", "src-iteq-uni-20260810", "src-iteq-daiwa-20260807", "src-iteq-gs-20260810"], "source_labels": []}, {"id": "emc", "name": "Elite Material", "ticker": "2383", "country": "Taiwan", "layer": "pcb", "component": "CCL", "role": "The high-end laminate leader. M9 moving from single digit to double digit share of mix, and now shipping core material into ABF substrates", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "3Q26 revenue NT$60.9bn. 4Q26 pricing up 5-10% on average, with the steeper increases at M6 and below. High-end capacity expected to add 3.15m sheets per month in 2027. Substrate material was historically BT-based and under 1% of revenue", "sources": ["src-emc-fubon-20261006", "src-iteq-gs-20260810"], "source_labels": []}, {"id": "tuc", "name": "Taiwan Union Technology", "ticker": "6274", "country": "Taiwan", "layer": "pcb", "component": "CCL", "role": "High-end laminate. M7 and above is 36% of mix, utilisation full, M9 in final qualification", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "2.6m sheets per month exiting 2Q26, adding 600k each at Changshu and Thailand, reaching 3.8m by the end of 2027", "sources": ["src-tuc-fubon-20260408"], "source_labels": []}, {"id": "fuchiao", "name": "Fu Chiao (1815)", "ticker": "1815", "country": "Taiwan", "layer": "pcb", "component": "Glass fabric and yarn", "role": "Integrated from yarn through fabric. Low DK1, Low DK2 and Low CTE all in production, with Taiwan and Dongguan weaving full", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "medium", "qual_lead_time_months": null, "capacity_note": "Two furnaces plus four electric furnaces and 920 looms. Thailand phase one of 400 looms starts in 3Q27 with initial output already reserved by customers, expanding to 500 in 2028. Toyota automatic looms for high-end fabric are quoting delivery into 2030. July pricing up 30% on E-glass and 15% on Low DK2", "sources": ["src-fuchiao-fubon-20260817"], "source_labels": []}, {"id": "nittobo", "name": "Nitto Boseki", "ticker": "3110.T", "country": "Japan", "layer": "pcb", "component": "Low-Dk glass fabric", "role": "High-end glass reinforcement", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "", "sources": [], "source_labels": []}, {"id": "mitsui-mining", "name": "Mitsui Kinzoku", "ticker": "5706.T", "country": "Japan", "layer": "pcb", "component": "HVLP copper foil", "role": "The main Japanese HVLP supplier. Most of the installed base is still first generation, and usable capacity shrinks with every generation step", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": "high", "qual_lead_time_months": null, "capacity_note": "Around 620 t per month, predominantly HVLP1. Converted entirely to HVLP4 that same line yields only 320 t. Total capacity rises to 840 t after September 2026, which is still only 400-430 t if all of it runs HVLP4", "sources": ["src-copperfoil-unknown-2025"], "source_labels": []}, {"id": "furukawa", "name": "Furukawa Electric", "ticker": "5801.T", "country": "Japan", "layer": "pcb", "component": "HVLP copper foil", "role": "One of the two main HVLP4 sources, and where Elite Material takes most of its HVLP4", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "capacity_note": "Mitsui and Furukawa combined ran roughly 350 t per month of HVLP4 in 2025, expanding to 450-550 t by the end of 2026, against 2026 demand of about 1,200 t per month", "sources": ["src-copperfoil-unknown-2025"], "source_labels": []}, {"id": "co-tech", "name": "Co-Tech Development", "ticker": "8358", "country": "Taiwan", "layer": "pcb", "component": "HVLP copper foil", "role": "The Taiwanese HVLP foil maker, selling to Elite Material, Taiwan Union and ITEQ, ramping HVLP4 to close the Japanese shortfall", "share_pct": null, "share_scope": "", "sole_source": false, "concentration": null, "qual_lead_time_months": null, "capacity_note": "250 t per month across all foil, with 480 t of headroom at the third Yunlin plant. HVLP4 at 50-100 t per month, expected to reach 200-250 t during 2026. Foil equipment lead times run six months or more and new capacity takes 18 to 24 months to come online", "sources": ["src-copperfoil-unknown-2025"], "source_labels": []}]}, "models": [{"id": "pcb-cost-structure", "layer": "pcb", "type": "cost_breakdown", "name": "AI high-end PCB cost breakdown", "unit": "佔上一層成本的百分比", "root": {"id": "pcb", "name": "AI high-end PCB", "pct": 100, "group_label": "Board makers", "supplier_ids": ["gce", "zdt"]}, "nodes": [{"id": "ccl", "name": "Copper clad laminate", "parent": "pcb", "pct_low": 45, "pct_high": 60, "supplier_ids": ["iteq", "emc", "tuc"]}, {"id": "copper-foil", "name": "Copper foil", "parent": "ccl", "pct": 40, "pct_of_pcb_low": 18, "pct_of_pcb_high": 24, "supplier_ids": ["mitsui-mining", "furukawa", "co-tech"]}, {"id": "epoxy-resin", "name": "Epoxy resin", "parent": "ccl", "pct": 25, "pct_of_pcb_low": 11, "pct_of_pcb_high": 15, "supplier_ids": []}, {"id": "fiberglass", "name": "Glass fabric", "parent": "ccl", "pct": 20, "pct_of_pcb_low": 9, "pct_of_pcb_high": 12, "supplier_ids": ["fuchiao", "nittobo"]}, {"id": "ccl-others", "name": "Other", "parent": "ccl", "pct": 15, "pct_of_pcb_low": 7, "pct_of_pcb_high": 9, "supplier_ids": []}]}, {"id": "m6-to-m8-demand", "layer": "pcb", "type": "multiplier", "name": "Demand amplification from a laminate grade step", "unit": "相對 M6 的倍數", "factors": ["layers", "area", "yield_loss"], "crucial_questions": ["yield", "size"], "crucial_note": "Layer count is set by the design and is effectively known. Yield and size are the only two variables that move with process maturity, so those are the two questions that decide where in the range a programme lands.", "scenarios": [{"id": "m6", "grade": "M6", "label": "baseline", "layers": [12, 16], "layer_mult": 1, "area": [1, 1], "yield_loss": [1, 1], "demand": [1, 1]}, {"id": "m8", "grade": "M8", "label": "base case", "layers": [24, 32], "layer_mult": 2, "area": [2, 2.5], "yield_loss": [1.15, 1.3], "demand": [4.6, 6.5], "note": "Layer counts pair 12 to 24 and 16 to 32, not crosswise. Doubling layer count also doubles board thickness."}, {"id": "m8-gb300-max", "grade": "M8", "label": "GB300 largest board, upper bound", "layers": [40, 40], "layer_mult": [2.5, 3.33], "area": [3, 5], "yield_loss": [1.15, 1.3], "demand": [8.6, 21.6], "note": "8.6 to 16.3× off a 16-layer base, 11.5 to 21.6× off a 12-layer base. This assumes three extremes land together, so it is a bound rather than a forecast and should be read separately from the base case."}], "downstream": {"note": "層數加倍在物理上就是疊更多層銅箔，所以 CCL 用量倍數大致帶動高階銅箔用量同倍數。成本佔比與用量倍數是兩件事，此處能接是因為層數因子本身就是銅箔張數", "links": ["copper-foil", "mitsui-mining", "co-tech"]}}, {"id": "dram-front-end", "layer": "die", "type": "process", "name": "Semiconductor front-end process", "root": {"id": "hbm-stack", "name": "HBM stack", "sub": "12 DRAM + 1 base die", "note": "A stack is only good if every die in it is good. Twelve dies in series is where the hard part of this chain lives.", "supplier_ids": ["sk-hynix", "samsung", "micron"]}, "top": {"id": "dram-die", "name": "The dies in a stack", "sub": "12 DRAM + 1 base die", "note": "A stack holds two kinds of die. Twelve are DRAM, made on a memory process in the memory makers' own fabs. The thirteenth is the base die at the bottom, carrying the external interface and control logic. From HBM4 it moves off the memory process onto a foundry logic process, which opens an external link in what used to be a closed memory chain.", "supplier_ids": []}, "steps": [{"id": "wafer", "idx": "01", "name": "Wafer manufacturing", "en": "Ingot, slicing, polishing", "note": "Crystal growth, slicing, lapping and polish. HBM starts on the same silicon as any other DRAM. What changes is everything after.", "supplier_ids": ["shin-etsu", "sumco"]}, {"id": "oxidation", "idx": "02", "name": "Oxidation", "en": "Silicon dioxide growth", "note": "Growing a silicon dioxide layer for insulation and protection. Almost every later step builds on it.", "supplier_ids": ["tel", "kokusai"]}, {"id": "litho", "idx": "03", "name": "Photolithography", "en": "Pattern transfer", "note": "Projecting the circuit pattern onto resist. Linewidth is decided here, and EUV scanners come from exactly one company, which makes this the cleanest single point of dependency in the whole semiconductor chain.", "supplier_ids": ["asml", "aem"]}, {"id": "etch", "idx": "04", "name": "Etching", "en": "Material removal", "note": "Removing what the resist does not protect. Through-silicon vias are cut by this class of process at aspect ratios far beyond ordinary structures, and it is part of why HBM takes longer in the fab.", "supplier_ids": ["lam", "tel"]}, {"id": "deposition", "idx": "05", "name": "Deposition", "en": "Thin film growth", "note": "Building dielectric and metal layers one at a time. More layers means more passes through this step.", "supplier_ids": ["amat", "lam", "tel"]}, {"id": "metal", "idx": "06", "name": "Metal wiring", "en": "Interconnect", "note": "Connecting the devices. HBM through-silicon vias have to be filled with copper, which is harder and slower than ordinary DRAM metallisation.", "supplier_ids": ["amat", "lam"]}, {"id": "eds", "idx": "07", "name": "Electric die sorting", "en": "Wafer test", "note": "Testing on the wafer before dicing to find the good dies. This matters more for HBM than for anything else, because stacking a bad die scraps all twelve.", "supplier_ids": ["advantest", "teradyne", "chipmos"]}]}], "demand": {"schema_version": 1, "_comment": "需求推導用的機櫃規格。capacity 類數字取自 NVIDIA 官方規格頁，stacks_per_gpu 與 dies_per_stack 是由容量推導的參數不是官方揭露，confidence 標 3 並在 basis 寫明。改這裡的數字，頁面上的計算會跟著變。", "driver_label": "預期年出貨機櫃數", "presets": [5000, 20000, 50000], "default_racks": 20000, "default_model": "gb300-nvl72", "racks": [{"id": "gb200-nvl72", "name": "GB200 NVL72", "gen": "Blackwell", "status": "in production", "gpus_per_rack": 72, "cpus_per_rack": 36, "compute_trays": 18, "switch_trays": 9, "hbm_gen": "HBM3E", "hbm_gb_per_gpu": 192, "stacks_per_gpu": 8, "dies_per_stack": 8, "stack_height": "8-high", "note": "The first NVL72 rack. 192 GB per GPU works out to roughly 13.8 TB across the rack.", "confidence": 3, "basis": "Capacity per GPU is public spec. Eight stacks per GPU and eight dies per stack are derived from capacity divided by the generation's per-stack size, not disclosed figures", "sources": [], "dies_per_package": 2, "lpddr_gb_per_cpu": 480, "gpus_per_tray": 4, "gb_per_stack": 24}, {"id": "gb300-nvl72", "name": "GB300 NVL72", "gen": "Blackwell Ultra", "status": "in production", "gpus_per_rack": 72, "cpus_per_rack": 36, "compute_trays": 18, "switch_trays": 9, "hbm_gen": "HBM3E", "hbm_gb_per_gpu": 288, "stacks_per_gpu": 8, "dies_per_stack": 12, "stack_height": "12-high", "note": "Physically each GPU sits next to 8 HBM3E stacks, 12 layers each at 3 GB a layer, which is 288 GB. That is what the memory maker actually ships. NVIDIA's spec page lists 279 GB, the capacity a user can address, and 279 times 72 is exactly the 20 TB it quotes for the rack. The missing 9 GB is not explained officially. Industry reading points to reserved capacity or a layer switched off for yield, neither confirmed. The cascade uses 288, because that 9 GB of silicon still got made.", "confidence": 3, "basis": "72 GPUs and 20 TB per rack come from NVIDIA's rack spec page. 288 GB per GPU comes from NVIDIA's enterprise reference architecture, which separately lists 2304 GB across an eight-GPU baseboard, and 2304 divided by eight is exactly 288. The 36 GB, 12-high, 24 Gb-per-die stack is Micron's own HBM3E product specification, confirmed by a TechInsights teardown of a physical B300 package. Neither company states stacks per GPU. Eight falls out of 288 divided by 36, so it is not an assumption but two companies' published figures reconciling.", "sources": ["src-nvidia-gb300-spec", "src-nvidia-refarch-b300", "src-techinsights-b300-hbm"], "hbm_gb_usable": 279, "dies_per_package": 2, "lpddr_gb_per_cpu": 480, "gpus_per_tray": 4, "gb_per_stack": 36}, {"id": "vr-nvl72", "name": "Vera Rubin NVL72", "gen": "Rubin", "status": "2H 2026", "gpus_per_rack": 72, "cpus_per_rack": 36, "compute_trays": 18, "switch_trays": 9, "hbm_gen": "HBM4", "hbm_gb_per_gpu": 288, "stacks_per_gpu": 8, "dies_per_stack": 12, "stack_height": "12-high", "note": "Moves to HBM4, where the interface doubles from 1024 to 2048 bits. The GPU package is a dual-die design and the rack carries 20.7 TB, which divided by 72 is about 288 GB, so this generation shows none of the gap between physical and usable capacity that GB300 does. Micron has announced HBM4 in high volume production for Vera Rubin.", "confidence": 3, "basis": "288 GB per GPU and 20.7 TB per rack are public reporting. The 36 GB 12-high stack is from Micron's HBM4 volume production announcement. Eight stacks follows from 288 divided by 36. Micron is also sampling a 48 GB 16-high part, and a switch to that would change the stack count per GPU.", "sources": ["src-micron-hbm4-12h"], "hbm_gb_usable": null, "dies_per_package": 2, "lpddr_gb_per_cpu": null, "gpus_per_tray": 4, "gb_per_stack": 36}, {"id": "vr-ultra-nvl576", "name": "Rubin Ultra NVL576", "gen": "Rubin Ultra", "status": "2H 2027, spec not final", "gpus_per_rack": 144, "cpus_per_rack": 36, "compute_trays": 18, "switch_trays": 9, "hbm_gen": "HBM4E", "hbm_gb_per_gpu": 1024, "stacks_per_gpu": 16, "dies_per_stack": 16, "stack_height": "16-high", "note": "NVL576 counts 576 compute dies at four dies per package, so there are 144 packages. Each package carries 1 TB of HBM4E. This generation is still moving, so treat the numbers as order of magnitude.", "confidence": 3, "basis": "Forward-looking public reporting, not final. Stacks and dies per stack are derived, not disclosed", "sources": [], "dies_per_package": 4, "lpddr_gb_per_cpu": null, "gpus_per_tray": 8, "gb_per_stack": 64}]}};
+
+const T = PAYLOAD.ui || {};
+const DEMO = !!(PAYLOAD.meta && PAYLOAD.meta.demo);
+const fmt = (t, o) => String(t == null ? "" : t).replace(/\{(\w+)\}/g, (_, k) => (o && o[k] != null) ? o[k] : "");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const byId = Object.fromEntries((PAYLOAD.layers || []).map(l => [l.id, l]));
+const stage = document.getElementById("stage");
+const svg = stage.querySelector("svg");
+const panel = document.getElementById("panel");
+const btnEx = document.getElementById("btn-explode");
+const btnReset = document.getElementById("btn-reset");
+
+/* header */
+document.getElementById("title").textContent = PAYLOAD.meta.title;
+document.title = PAYLOAD.meta.title;
+document.getElementById("lede").textContent = PAYLOAD.meta.lede;
+const crumb = document.getElementById("crumb");
+(PAYLOAD.meta.context_path || []).forEach((p, i, arr) => {
+  const s = document.createElement("span");
+  s.className = i === 2 ? "here" : "ghost";
+  s.textContent = p;
+  crumb.appendChild(s);
+  if (i < arr.length - 1) {
+    const sep = document.createElement("span");
+    sep.className = "sep"; sep.textContent = "›";
+    crumb.appendChild(sep);
+  }
+});
+document.getElementById("btn-explode").textContent = T.explode;
+document.getElementById("btn-reset").textContent = T.reset;
+document.documentElement.lang = PAYLOAD.meta.lang === "en" ? "en" : "zh-Hant";
+const sp = document.querySelector(".scale-txt");
+if (sp) sp.textContent = T.signalPath;
+(PAYLOAD.layers || []).forEach(L => {
+  const g = document.querySelector(`.layer[data-key="${L.id}"]`);
+  if (!g) return;
+  const nm = g.querySelector(".lbl-name"), sb = g.querySelector(".lbl-sub:last-of-type");
+  if (nm) nm.textContent = L.name;
+  const subs = g.querySelectorAll(".lbl-sub");
+  if (subs.length) subs[subs.length - 1].textContent = L.tagline || "";
+  g.setAttribute("aria-label", fmt(T.layerN, { n: L.idx }) + " " + L.name);
+});
+document.getElementById("foot").innerHTML = (T.foot || []).map(b =>
+  `<div><h3>${esc(b.h)}</h3>${(b.p || []).map(x => `<p>${esc(x)}</p>`).join("")}</div>`).join("");
+const stampText = PAYLOAD.meta.stamp + " · " + T.notToScale;
+document.getElementById("stamp").textContent = stampText;
+const st2 = document.getElementById("stamp2");
+if (st2) st2.textContent = stampText;
+
+function supplierLine(s) {
+  const sole = s.sole_source
+    ? ` <span class="sole">${esc(T.soleSource)}</span>`
+    : (s.concentration === "high" ? ` <span class="conc">${esc(T.concentrated)}</span>` : "");
+  const share = (s.share_pct != null) ? ` <b>${esc(s.share_pct)}%</b>` : "";
+  const lead = (s.qual_lead_time_months != null)
+    ? ` <span class="sup-role">${esc(fmt(T.qualMonths, { n: s.qual_lead_time_months }))}</span>` : "";
+  const labels = s.source_labels || [];
+  const src = DEMO ? "" : (labels.length
+    ? `<span class="src">${esc(T.sourcePrefix)}${labels.map(esc).join("、")}</span>`
+    : `<span class="src missing">${esc(T.noSource)}</span>`);
+  const ticker = s.ticker ? ` <span class="sup-role">${esc(s.ticker)}</span>` : "";
+  return `<li><span class="flag">${esc(s.country)}</span><span>${esc(s.name)}${ticker}${sole}${share}
+    <span class="sup-role">${esc(s.role)}</span>${lead}${src}</span></li>`;
+}
+
+/* ================= demand cascade ================= */
+const demandEl = document.getElementById("demand");
+const DM = PAYLOAD.demand || {};
+let dmModel = DM.default_model || (DM.racks && DM.racks[0] && DM.racks[0].id);
+let dmRacks = DM.default_racks || 10000;
+
+const nfmt = v => Number(v).toLocaleString("en-US");
+
+function packageSvg(r) {
+  /* isometric projection, plan units, z is up */
+  const OX = 196, OY = 62, C = 0.866;
+  const P = (x, y, z) => [(OX + (x - y) * C).toFixed(1), (OY + (x + y) * 0.5 - z).toFixed(1)];
+  const pt = (x, y, z) => P(x, y, z).join(",");
+
+  function box(x, y, w, d, z0, h, top, side, stripes) {
+    const z1 = z0 + h;
+    const faces =
+      `<polygon points="${pt(x, y, z1)} ${pt(x + w, y, z1)} ${pt(x + w, y + d, z1)} ${pt(x, y + d, z1)}" fill="${top}"/>` +
+      `<polygon points="${pt(x, y + d, z1)} ${pt(x + w, y + d, z1)} ${pt(x + w, y + d, z0)} ${pt(x, y + d, z0)}" fill="${side}" fill-opacity=".95"/>` +
+      `<polygon points="${pt(x + w, y, z1)} ${pt(x + w, y + d, z1)} ${pt(x + w, y + d, z0)} ${pt(x + w, y, z0)}" fill="${side}" fill-opacity=".74"/>`;
+    let lines = "";
+    if (stripes > 1) {
+      for (let k = 1; k < stripes; k++) {
+        const zk = z0 + (h * k) / stripes;
+        lines += `<polyline points="${pt(x, y + d, zk)} ${pt(x + w, y + d, zk)} ${pt(x + w, y, zk)}"
+          fill="none" stroke="var(--mat-copper)" stroke-width=".7" stroke-opacity=".55"/>`;
+      }
+    }
+    return faces + lines +
+      `<polygon points="${pt(x, y, z1)} ${pt(x + w, y, z1)} ${pt(x + w, y + d, z1)} ${pt(x, y + d, z1)}"
+        fill="none" stroke="var(--line-strong)" stroke-width=".8" stroke-opacity=".7"/>`;
+  }
+
+  const nStack = Math.max(2, r.stacks_per_gpu || 8);
+  const nDie = Math.max(1, r.dies_per_package || 2);
+  const layers = Math.min(16, Math.max(2, r.dies_per_stack || 12));
+  const rows = nStack > 8 ? 2 : 1;            /* stacks per side, in rows */
+  const perRow = Math.ceil(nStack / (2 * rows));
+
+  const parts = [];
+  /* board, then package substrate, then interposer */
+  parts.push([ -1, box(0, 0, 220, 220, 0, 7, "var(--mat-pcb-2)", "var(--mat-pcb)", 0) ]);
+  parts.push([ -1, box(16, 16, 188, 188, 7, 7, "var(--mat-abf)", "var(--mat-abf-core)", 0) ]);
+  parts.push([ -1, box(34, 34, 152, 152, 14, 4, "var(--mat-interposer)", "var(--mat-interposer)", 0) ]);
+
+  const ZT = 18;
+  const SD = rows > 1 ? 20 : 26;               /* stack depth */
+  const SG = rows > 1 ? 4 : 5;                 /* gap between stack rows */
+  const SH = 14 + layers * 0.7;                /* taller stack for more layers */
+  const span = 146, left = 37;
+  const sw = (span - (perRow - 1) * 6) / perRow;
+
+  /* HBM rows, near edge then far edge */
+  const rowY = [];
+  for (let k = 0; k < rows; k++) rowY.push(40 + k * (SD + SG));
+  for (let k = 0; k < rows; k++) rowY.push(180 - SD - k * (SD + SG));
+
+  rowY.forEach(yy => {
+    for (let c = 0; c < perRow; c++) {
+      const xx = left + c * (sw + 6);
+      parts.push([ xx + yy, box(xx, yy, sw, SD, ZT, SH, "var(--mat-hbm)", "var(--mat-hbm)", layers) ]);
+    }
+  });
+
+  /* compute dies in the middle */
+  const dy = 40 + rows * SD + (rows - 1) * SG + 5;
+  const dd = 180 - SD * rows - (rows - 1) * SG - dy - 3;
+  const dw = (span - (nDie - 1) * 5) / nDie;
+  for (let c = 0; c < nDie; c++) {
+    const xx = left + c * (dw + 5);
+    parts.push([ xx + dy, box(xx, dy, dw, dd, ZT, 11, "#C9D2DA", "var(--mat-die)", 0) ]);
+  }
+
+  parts.sort((a, b) => a[0] - b[0]);
+  return `<svg viewBox="0 0 392 300" role="img" aria-label="${esc(r.name)} package">${parts.map(x => x[1]).join("")}</svg>`;
+}
+
+function renderDemand() {
+  const racksList = DM.racks || [];
+  if (!racksList.length) { demandEl.hidden = true; return; }
+  demandEl.hidden = false;
+  const r = racksList.find(x => x.id === dmModel) || racksList[0];
+
+  const gpus = dmRacks * r.gpus_per_rack;
+  const stacks = gpus * r.stacks_per_gpu;
+  const dies = stacks * r.dies_per_stack;
+  const gb = gpus * r.hbm_gb_per_gpu;
+  const pb = gb / 1e6;
+  const eb = (gb * 8) / 1e9;
+  const cpus = dmRacks * (r.cpus_per_rack || 0);
+  const lpGb = r.lpddr_gb_per_cpu ? cpus * r.lpddr_gb_per_cpu : null;
+  const fx = (v, dp) => Number(v).toLocaleString("en-US", { maximumFractionDigits: dp });
+
+  const tiles = [
+    [T.dmRacks, nfmt(dmRacks), "", ""],
+    [T.dmGpuPer, nfmt(r.gpus_per_rack),
+     r.hbm_gen + " " + r.hbm_gb_per_gpu + " GB" +
+     (r.hbm_gb_usable ? " / " + r.hbm_gb_usable + " GB " + T.dmUsable : ""), T.dmSpec],
+    [T.dmStackPer, nfmt(r.stacks_per_gpu), T.dmStackFrom, T.dmXcheck],
+    [T.dmDiePer, nfmt(r.dies_per_stack), (r.stack_height || "") + " · " + (r.gb_per_stack || 36) + " GB", T.dmSpec]
+  ].map(([l, v, sub, tag], i) =>
+    `<div class="fact"><span class="fl">${esc(l)}${tag ? `<span class="tagx">${esc(tag)}</span>` : ""}</span>
+      <span class="fv">${esc(v)}</span>${sub ? `<span class="fn">${esc(sub)}</span>` : ""}</div>`
+  ).join('<span class="times">×</span>');
+
+  demandEl.innerHTML = `<h2>${esc(T.dmTitle)}</h2>
+    <p class="sub">${esc(T.dmSub)}</p>
+    <div class="scn" id="dm-models">${racksList.map(x =>
+      `<button type="button" data-m="${esc(x.id)}" aria-pressed="${x.id === r.id}">${esc(x.name)}</button>`).join("")}</div>
+    <div class="dm-grid">
+      <div class="dm-rack">
+        <div class="dm-head">
+          <div class="dm-name">${esc(r.name)}</div>
+          <div class="dm-meta"><span class="g">${esc(r.gen)} · ${esc(r.hbm_gen)}</span>
+            <span class="st">${esc(r.status)}</span></div>
+        </div>
+        ${packageSvg(r)}
+        <p class="dm-cap">${esc(fmt(T.dmPkgCaption, { d: r.dies_per_package, s: r.stacks_per_gpu, l: r.dies_per_stack }))}</p>
+      </div>
+      <div>
+        <div class="dm-input">
+          <label for="dm-n">${esc(T.dmDriver)}</label>
+          <input id="dm-n" type="number" min="0" step="1000" value="${dmRacks}">
+          ${(DM.presets || []).map(v => `<button type="button" class="pre" data-v="${v}">${nfmt(v)}</button>`).join("")}
+        </div>
+        <div class="dm-chain">${tiles}</div>
+        <div class="dm-heroes">
+          <div class="dm-hero"><span class="hv">${nfmt(stacks)}</span><span class="hl">${esc(T.dmOutStacks)}</span></div>
+          <div class="dm-hero"><span class="hv">${nfmt(dies)}</span><span class="hl">${esc(T.dmOutDies)}</span></div>
+          <div class="dm-hero"><span class="hv">${fx(pb, 1)} PB</span><span class="hl">${esc(T.dmOutCap)}</span></div>
+          <div class="dm-hero"><span class="hv">${fx(eb, 2)} Eb</span><span class="hl">${esc(T.dmOutBits)}</span></div>
+        </div>
+        <p class="cap">${esc(T.dmBitsNote)}</p>
+        ${lpGb ? `<div class="dm-heroes dm-second">
+          <div class="dm-hero"><span class="hv">${fx(lpGb / 1e6, 1)} PB</span><span class="hl">${esc(fmt(T.dmOutLp, { n: nfmt(r.lpddr_gb_per_cpu) }))}</span></div>
+          <div class="dm-hero"><span class="hv">${fx((lpGb * 8) / 1e9, 2)} Eb</span><span class="hl">${esc(T.dmOutLpBits)}</span></div>
+        </div>
+        <p class="cap">${esc(T.dmLpNote)}</p>` : ""}
+        <p class="cap">${esc(r.note)}</p>
+        ${r.basis ? `<p class="cap">${esc(r.basis)}</p>` : ""}
+      </div>
+    </div>`;
+
+  demandEl.querySelectorAll("#dm-models button").forEach(b =>
+    b.addEventListener("click", () => { dmModel = b.dataset.m; renderDemand(); }));
+  demandEl.querySelectorAll(".pre").forEach(b =>
+    b.addEventListener("click", () => { dmRacks = +b.dataset.v; renderDemand(); }));
+  const inp = demandEl.querySelector("#dm-n");
+  inp.addEventListener("input", () => {
+    const v = parseInt(inp.value, 10);
+    if (!isNaN(v) && v >= 0) {
+      dmRacks = v;
+      const g = v * r.gpus_per_rack, st = g * r.stacks_per_gpu;
+      const hv = demandEl.querySelectorAll(".dm-hero .hv");
+      hv[0].textContent = nfmt(st);
+      hv[1].textContent = nfmt(st * r.dies_per_stack);
+      const cap = g * r.hbm_gb_per_gpu;
+      hv[2].textContent = fx(cap / 1e6, 1) + " PB";
+      if (hv[3]) hv[3].textContent = fx((cap * 8) / 1e9, 2) + " Eb";
+      if (hv[4] && r.lpddr_gb_per_cpu) {
+        const lg = v * r.cpus_per_rack * r.lpddr_gb_per_cpu;
+        hv[4].textContent = fx(lg / 1e6, 1) + " PB";
+        hv[5].textContent = fx((lg * 8) / 1e9, 2) + " Eb";
+      }
+      demandEl.querySelector(".dm-chain .fact .fv").textContent = nfmt(v);
+    }
+  });
+}
+
+function renderHome() {
+  panel.innerHTML = `
+    <div class="p-idx">${esc(T.homeIdx)}</div>
+    <div class="p-title">${esc(T.homeTitle)}</div>
+    <div class="p-en">${esc(T.homeEn)}</div>
+    <div class="note">${esc(T.homeNote)}</div>
+    <div class="sec-h">${esc(T.howTo)}</div>
+    <ul class="sup">${(T.how || []).map((h, i) =>
+      `<li><span class="flag">0${i + 1}</span><span>${esc(h)}</span></li>`).join("")}</ul>`;
+}
+
+function renderLayer(key) {
+  const d = byId[key];
+  if (!d) return renderHome();
+  const sups = (PAYLOAD.suppliers[key] || []);
+  const specs = (d.spec || []).map(x => `<dt>${esc(x.k)}</dt><dd>${esc(x.v)}</dd>`).join("");
+  const cov = d.coverage;
+  panel.innerHTML = `
+    <div class="p-swatch" style="background:${esc(d.swatch)}"></div>
+    <div class="p-idx">${esc(fmt(T.layerN, { n: d.idx }))}</div>
+    <div class="p-title">${esc(d.name)}</div>
+    <div class="p-en">${esc(d.en)}</div>
+    <dl class="spec">${specs}</dl>
+    <div class="sec-h">${esc(T.suppliers)} <span class="count">${sups.length}</span></div>
+    ${drillModel(key)
+      ? `<p class="cap" style="margin:0 0 4px">${esc(T.suppliersInDrill)}</p>`
+      : supGroupsHtml(key, sups)}
+    <div class="sec-h">${esc(T.bottleneck)}</div>
+    <div class="note">${esc(d.note)}</div>
+    ${cov ? `<div class="cover"><span class="dot ${cov.covered ? "yes" : "no"}"></span>${esc(cov.text)}</div>` : ""}`;
+  renderModels(key);
+}
+
+/* ================= cost & demand models ================= */
+const CAT = ["var(--cat-1)", "var(--cat-2)", "var(--cat-3)", "var(--cat-4)"];
+const SUPNAME = {}, SUPOBJ = {};
+Object.values(PAYLOAD.suppliers || {}).forEach(list =>
+  (list || []).forEach(s => {
+    SUPNAME[s.id] = s.name + (s.ticker ? " " + s.ticker : "");
+    SUPOBJ[s.id] = s;
+  }));
+
+const tip = document.createElement("div");
+tip.className = "tip";
+document.body.appendChild(tip);
+function showTip(html, ev) {
+  tip.innerHTML = html;
+  tip.classList.add("on");
+  const pad = 14;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  const r = tip.getBoundingClientRect();
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - pad;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - pad;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+function hideTip() { tip.classList.remove("on"); }
+
+const num = v => Array.isArray(v) ? v : [v, v];
+function rng(v, unit) {
+  const [a, b] = num(v);
+  const u = unit || "";
+  return a === b ? `${a}${u}` : `${a} – ${b}${u}`;
+}
+
+const scnSel = {};
+
+function costHtml(m) {
+  const root = m.root || { name: "總成本" };
+  const top = m.nodes.find(n => n.parent === root.id) || m.nodes[0];
+  const kids = m.nodes.filter(n => n.parent === top.id);
+  const lo = top.pct_low, hi = top.pct_high;
+  const supsOf = n => (n.supplier_ids || []).map(id => SUPNAME[id]).filter(Boolean);
+
+  const segs = kids.map((k, i) => {
+    const s = supsOf(k);
+    const tipHtml = `<b>${esc(k.name)}</b><br>${esc(fmt(T.pctOfTop, { a: top.name, p: k.pct }))}<br>${esc(fmt(T.pctOfTo, { b: root.name, lo: k.pct_of_pcb_low, hi: k.pct_of_pcb_high }))}` +
+      (s.length ? `<br>${esc(s.join("、"))}` : `<br>${esc(T.noSupplierData)}`);
+    return `<button type="button" class="seg" style="flex:${k.pct};background:${CAT[i % 4]}"
+      data-tip="${encodeURIComponent(tipHtml)}" aria-label="${esc(k.name)} ${k.pct}%"><span>${k.pct}%</span></button>`;
+  }).join("");
+
+  const keys = kids.map((k, i) => {
+    return `<div class="k"><span class="sw" style="background:${CAT[i % 4]}"></span>
+      <span>${esc(k.name)}</span>
+      <span class="k-of">${esc(fmt(T.pctOfDash, { b: root.name, lo: k.pct_of_pcb_low, hi: k.pct_of_pcb_high }))}</span></div>`;
+  }).join("");
+
+  void segs;
+  return `<div class="model">
+    <div class="sec-h">${esc(T.costTable)}</div>
+    <div class="share-line"><span>${esc(fmt(T.shareOf, { a: top.name, b: root.name }))}</span><b>${lo}–${hi}%</b></div>
+    <div class="keyrow">${keys}</div>
+    ${m.basis ? `<p class="cap">${esc(m.basis)}</p>` : ""}
+  </div>`;
+}
+
+function multBody(m, selId) {
+  const s = m.scenarios.find(x => x.id === selId) || m.scenarios[0];
+  const lm = num(s.layer_mult);
+  const FL = m.factor_labels || T.factors;
+  const U0 = m.unit_first != null ? m.unit_first : T.unitLayers;
+  const facts = [
+    [FL[0], rng(s.layers, U0), m.show_mult === false ? "" : `${rng(s.layer_mult)}${T.unitX}`],
+    [FL[1], `${rng(s.area)}${T.unitX}`, ""],
+    [FL[2], `${rng(s.yield_loss)}${T.unitX}`, ""]
+  ].map(([l, v, n]) =>
+    `<div class="fact"><span class="fl">${l}</span><span class="fv">${v}</span>${n ? `<span class="fn">${n}</span>` : ""}</div>`
+  ).join('<span class="times">×</span>');
+
+  return `<div class="factors">${facts}</div>
+    <div class="hero"><span class="hv">${rng(s.demand)}×</span><span class="hl">${esc(m.hero_label || T.demandVsM6)}</span></div>
+    ${s.note ? `<p class="cap">${esc(s.note)}</p>` : ""}`;
+}
+
+function cmpRows(m) {
+  const max = Math.max(...m.scenarios.map(s => num(s.demand)[1]));
+  return m.scenarios.map(s => {
+    const [a, b] = num(s.demand);
+    const left = (a / max) * 100, w = Math.max(((b - a) / max) * 100, 1.5);
+    const muted = s.id === "m6";
+    const end = left + w;
+    const inside = end > 76;
+    const pos = inside ? `right:8px` : `left:calc(${end}% + 8px)`;
+    return `<div class="cmp-row">
+      <span class="cmp-name">${esc(s.grade)}<br>${esc(s.label)}</span>
+      <span class="cmp-track">
+        <span class="cmp-band${muted ? " muted" : ""}" style="left:${left}%;width:${w}%"></span>
+        <span class="cmp-val${inside ? " on-band" : ""}" style="${pos}">${rng(s.demand)}×</span>
+      </span></div>`;
+  }).join("");
+}
+
+function multHtml(m) {
+  const sel = scnSel[m.id] || (m.scenarios[1] || m.scenarios[0]).id;
+  scnSel[m.id] = sel;
+  return `<div class="model" data-mdl="${m.id}">
+    <div class="sec-h">${esc(m.name)}</div>
+    <div class="scn">${m.scenarios.map(s =>
+      `<button type="button" data-s="${s.id}" aria-pressed="${s.id === sel}">${esc(s.grade)} ${esc(s.label)}</button>`
+    ).join("")}</div>
+    <div class="mbody">${multBody(m, sel)}</div>
+    <div class="cmp">${cmpRows(m)}</div>
+    <p class="cap">${esc(m.crucial_note)}</p>
+    ${m.basis ? `<p class="cap">${esc(m.basis)}</p>` : ""}
+  </div>`;
+}
+
+/* ================= drill-down 往下拆解 ================= */
+const drillEl = document.getElementById("drill");
+let drillState = { level: 1, sel: "top" };
+
+const SEQ = ["var(--seq-1)", "var(--seq-2)", "var(--seq-3)", "var(--seq-4)",
+             "var(--seq-5)", "var(--seq-6)", "var(--seq-7)"];
+
+function drillModel(key) {
+  return (PAYLOAD.models || []).find(x => x.layer === key &&
+    (x.type === "cost_breakdown" || x.type === "process"));
+}
+
+/* shared block: whoever is selected, list their suppliers underneath */
+function dsupHtml(label, lvl, color, ids, caption) {
+  const items = (ids || []).map(id => SUPOBJ[id]).filter(Boolean);
+  return `<div class="dsup"><div class="grp${items.length ? "" : " empty"}">
+      <div class="grp-h">${color ? `<span class="sw" style="background:${color}"></span>` : ""}
+        <span>${esc(label)}</span>${lvl ? `<span class="lvl">${esc(lvl)}</span>` : ""}
+        <span class="n">${items.length}</span></div>
+      ${caption ? `<p class="cap" style="margin:0 0 9px;padding-left:16px">${esc(caption)}</p>` : ""}
+      ${items.length
+        ? `<ul class="sup">${items.map(supplierLine).join("")}</ul>`
+        : `<div class="grp-empty">${esc(T.noSupplierData)}</div>`}
+    </div></div>`;
+}
+
+function drillProcess(m, key) {
+  const root = m.root, top = m.top, steps = m.steps || [];
+  const open = drillState.level >= 2;
+  const sel = drillState.sel;
+
+  /* the stack */
+  let bars = "";
+  for (let i = 0; i < 12; i++)
+    bars += `<rect x="24" y="${128 + i * 7}" width="122" height="5" fill="var(--mat-hbm)"/>`;
+  bars += `<rect x="24" y="${128 + 12 * 7 + 3}" width="122" height="9" fill="var(--mat-interposer)"/>`;
+
+  const s1 = `<g class="dstep" data-step="1">
+    <g class="dnode${sel === "root" ? " on" : ""}" data-act="root" tabindex="0" role="button" aria-label="${esc(root.name)}">
+      ${bars}
+      <rect class="dring" x="18" y="122" width="134" height="104" rx="2"/>
+      <text class="dlbl" x="85" y="248" text-anchor="middle">${esc(root.name)}</text>
+      <text class="dsub" x="85" y="263" text-anchor="middle">${esc(root.sub || "")}</text>
+    </g></g>`;
+
+  /* one wafer */
+  const grid = [];
+  for (let x = 213; x <= 317; x += 13) grid.push(`<line x1="${x}" y1="119" x2="${x}" y2="231"/>`);
+  for (let y = 126; y <= 231; y += 13) grid.push(`<line x1="209" y1="${y}" x2="321" y2="${y}"/>`);
+
+  const s2 = `<g class="dstep" data-step="2">
+    <path class="darrow" d="M160 175 L186 175 M180 171 L186 175 L180 179"/>
+    <g class="dnode${sel === "top" ? " on" : ""}" data-act="open" tabindex="0" role="button" aria-label="${esc(top.name)}">
+      <circle cx="265" cy="175" r="56" fill="var(--mat-interposer)"/>
+      <g clip-path="url(#wclip)" stroke="var(--surface)" stroke-width="1" opacity=".5">${grid.join("")}</g>
+      <circle cx="265" cy="175" r="56" fill="none" stroke="var(--line-strong)"/>
+      <path d="M258 231 l7 10 l7 -10 z" fill="var(--surface)" stroke="var(--line-strong)"/>
+      <circle class="dring" cx="265" cy="175" r="61"/>
+      <text class="dlbl" x="265" y="256" text-anchor="middle">${esc(top.name)}</text>
+      <text class="dsub" x="265" y="271" text-anchor="middle">${esc(top.sub || "")}</text>
+      ${open ? "" : `<text class="dhint" x="265" y="290" text-anchor="middle">${esc(T.drillOpenHint)}</text>`}
+    </g></g>`;
+
+  /* the seven steps */
+  let s3 = "";
+  if (open) {
+    const H = 40, GAP = 6;
+    const tiles = steps.map((st, i) => {
+      const y = 24 + i * (H + GAP), cy = y + H / 2;
+      return `<g class="dnode${sel === i ? " on" : ""}" data-act="pick" data-i="${i}" tabindex="0" role="button" aria-label="${esc(st.idx)} ${esc(st.name)}">
+        <text class="lbl-idx" x="368" y="${cy + 4}" text-anchor="end">${esc(st.idx)}</text>
+        <rect class="plate" x="376" y="${y}" width="110" height="${H}" rx="2" fill="${SEQ[i % 7]}" stroke="var(--line-strong)" stroke-width="1"/>
+        <rect class="dring" x="372" y="${y - 4}" width="118" height="${H + 8}" rx="3"/>
+        <text class="dlbl" x="500" y="${cy - 2}">${esc(st.name)}</text>
+        <text class="dsub" x="500" y="${cy + 13}">${esc(st.en || "")}</text>
+      </g>`;
+    }).join("");
+    s3 = `<g class="dstep" data-step="3">
+      <path class="darrow" d="M330 175 L352 175 M346 171 L352 175 L346 179"/>${tiles}</g>`;
+  }
+
+  let node, color = null, lvl = T.lvlStep, label;
+  if (sel === "root") { node = root; label = root.name; lvl = T.lvlFinished; }
+  else if (sel === "top") { node = top; label = top.name; lvl = T.lvlBase; }
+  else { node = steps[sel] || steps[0]; label = node.idx + "  " + node.name; color = SEQ[(sel || 0) % 7]; }
+
+  drillEl.innerHTML = `<h2>${esc(T.drillTitle)}</h2>
+    <p class="sub">${open ? esc(T.drillHintStep) : esc(fmt(T.drillHintClosed, { top: top.name }))}</p>
+    <svg viewBox="0 0 760 ${open ? 380 : 310}" role="img" aria-label="${esc(root.name)}">
+      <defs><clipPath id="wclip"><circle cx="265" cy="175" r="56"/></clipPath></defs>
+      ${s1}${s2}${s3}</svg>
+    ${dsupHtml(label, lvl, color, node.supplier_ids, node.note)}`;
+
+  wireDrill(key);
+}
+
+function wireDrill(key) {
+  requestAnimationFrame(() => drillEl.querySelectorAll(".dstep").forEach((g, i) =>
+    setTimeout(() => g.classList.add("in"), i * 110)));
+  drillEl.querySelectorAll(".dnode").forEach(nd => {
+    const act = () => {
+      const a = nd.dataset.act;
+      if (a === "root") drillState.sel = "root";
+      else if (a === "open") { drillState.level = 2; drillState.sel = "top"; }
+      else if (a === "pick") drillState.sel = +nd.dataset.i;
+      drillRender(key);
+    };
+    nd.addEventListener("click", act);
+    nd.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); }
+    });
+  });
+}
+
+function drillRender(key) {
+  const m = drillModel(key);
+  if (!m) { drillEl.hidden = true; drillEl.innerHTML = ""; return; }
+  drillEl.hidden = false;
+  if (m.type === "process") return drillProcess(m, key);
+
+  const root = m.root;
+  const top = m.nodes.find(n => n.parent === root.id) || m.nodes[0];
+  const kids = m.nodes.filter(n => n.parent === top.id);
+  const open = drillState.level >= 2;
+  const sel = drillState.sel;
+
+  const s1 = `<g class="dstep" data-step="1">
+    <g class="dnode${sel === "root" ? " on" : ""}" data-act="root" tabindex="0" role="button" aria-label="${esc(root.name)}">
+      <rect class="plate" x="20" y="124" width="150" height="50" rx="1" fill="var(--mat-pcb)"/>
+      <rect x="20" y="124" width="150" height="50" rx="1" fill="none" stroke="var(--line-strong)"/>
+      <g stroke="var(--mat-copper)" stroke-width="2.2" opacity=".85">
+        <line x1="32" y1="135" x2="158" y2="135"/><line x1="32" y1="146" x2="118" y2="146"/>
+        <line x1="130" y1="146" x2="158" y2="146"/><line x1="32" y1="157" x2="158" y2="157"/>
+        <line x1="32" y1="167" x2="96" y2="167"/>
+      </g>
+      <rect class="dring" x="16" y="120" width="158" height="58" rx="2"/>
+      <text class="dlbl" x="95" y="196" text-anchor="middle">${esc(root.name)}</text>
+      <text class="dsub" x="95" y="211" text-anchor="middle">${esc(T.cost100)}</text>
+    </g></g>`;
+
+  const bands = [[110, 11, CAT[0]], [123, 13, CAT[1]], [138, 16, CAT[2]],
+                 [156, 13, CAT[1]], [171, 11, CAT[0]]]
+    .map(([y, h, c]) => `<rect x="216" y="${y}" width="150" height="${h}" fill="${c}"/>`).join("");
+
+  const s2 = `<g class="dstep" data-step="2">
+    <path class="darrow" d="M180 149 L204 149 M198 145 L204 149 L198 153"/>
+    <g class="dnode${sel === "top" ? " on" : ""}" data-act="open" tabindex="0" role="button" aria-label="${esc(top.name)}">
+      ${bands}
+      <rect x="216" y="110" width="150" height="72" fill="none" stroke="var(--line-strong)"/>
+      <rect class="dring" x="212" y="106" width="158" height="80" rx="2"/>
+      <text class="dlbl" x="291" y="202" text-anchor="middle">${esc(top.name)}</text>
+      <text class="dsub" x="291" y="217" text-anchor="middle">${esc(fmt(T.pctOfTo, { b: root.name, lo: top.pct_low, hi: top.pct_high }))}</text>
+      ${open ? "" : `<text class="dhint" x="291" y="236" text-anchor="middle">${esc(T.drillOpenHint)}</text>`}
+    </g></g>`;
+
+  let s3 = "";
+  if (open) {
+    const GAP = 5, SPAN = 215;
+    let y = 30;
+    const tiles = kids.map((k, i) => {
+      const h = Math.round(SPAN * k.pct / 100);
+      const cy = y + h / 2;
+      const g = `<g class="dnode${sel === i ? " on" : ""}" data-act="pick" data-i="${i}" tabindex="0" role="button" aria-label="${esc(k.name)} ${k.pct}%">
+        <rect class="plate" x="412" y="${y}" width="132" height="${h}" rx="2" fill="${CAT[i % 4]}"/>
+        <rect class="dring" x="408" y="${y - 4}" width="140" height="${h + 8}" rx="3"/>
+        <text class="dpct on-plate" x="478" y="${cy + 4}" text-anchor="middle">${k.pct}%</text>
+        <text class="dlbl" x="558" y="${cy - 2}">${esc(k.name)}</text>
+        <text class="dsub" x="558" y="${cy + 12}">${esc(fmt(T.pctOfDash, { b: root.name, lo: k.pct_of_pcb_low, hi: k.pct_of_pcb_high }))}</text>
+      </g>`;
+      y += h + GAP;
+      return g;
+    }).join("");
+    s3 = `<g class="dstep" data-step="3">
+      <path class="darrow" d="M376 146 L400 146 M394 142 L400 146 L394 150"/>${tiles}</g>`;
+  }
+
+  let node, color = null, lvl = T.lvlRaw, label;
+  if (sel === "root") { node = root; label = root.group_label || root.name; lvl = T.lvlFinished; }
+  else if (sel === "top") { node = top; label = top.name; lvl = T.lvlBase; }
+  else { node = kids[sel] || kids[0]; label = node.name; color = CAT[(sel || 0) % 4]; }
+
+  const items = (node.supplier_ids || []).map(id => SUPOBJ[id]).filter(Boolean);
+  const pct = (sel === "root") ? T.cost100
+    : (sel === "top") ? fmt(T.pctOfTo, { b: root.name, lo: top.pct_low, hi: top.pct_high })
+    : fmt(T.pctOfTop, { a: top.name, p: node.pct }) + " · " +
+      fmt(T.pctOfTo, { b: root.name, lo: node.pct_of_pcb_low, hi: node.pct_of_pcb_high });
+
+  const sup = dsupHtml(label, lvl, color, node.supplier_ids, pct);
+  void items;
+
+  drillEl.innerHTML = `<h2>${esc(T.drillTitle)}</h2>
+    <p class="sub">${open ? esc(T.drillHintOpen) : esc(fmt(T.drillHintClosed, { top: top.name }))}</p>
+    <svg viewBox="0 0 760 290" role="img" aria-label="${esc(root.name)}">${s1}${s2}${s3}</svg>
+    ${sup}`;
+
+  wireDrill(key);
+}
+
+function renderModels(key) {
+  (PAYLOAD.models || []).filter(m => m.layer === key).forEach(m => {
+    if (m.type === "cost_breakdown") panel.insertAdjacentHTML("beforeend", costHtml(m));
+    else if (m.type === "multiplier") panel.insertAdjacentHTML("beforeend", multHtml(m));
+  });
+  panel.querySelectorAll(".seg").forEach(el => {
+    const html = decodeURIComponent(el.dataset.tip);
+    el.addEventListener("mousemove", e => showTip(html, e));
+    el.addEventListener("mouseleave", hideTip);
+    el.addEventListener("focus", e => showTip(html, { clientX: el.getBoundingClientRect().left + 20, clientY: el.getBoundingClientRect().bottom }));
+    el.addEventListener("blur", hideTip);
+  });
+  panel.querySelectorAll("[data-mdl] .scn button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const wrap = btn.closest("[data-mdl]");
+      const m = (PAYLOAD.models || []).find(x => x.id === wrap.dataset.mdl);
+      scnSel[m.id] = btn.dataset.s;
+      wrap.querySelectorAll(".scn button").forEach(b =>
+        b.setAttribute("aria-pressed", String(b.dataset.s === btn.dataset.s)));
+      wrap.querySelector(".mbody").innerHTML = multBody(m, btn.dataset.s);
+    });
+  });
+}
+
+function supGroups(key, sups) {
+  const m = drillModel(key);
+  const groups = [], at = {};
+  if (m) {
+    const root = m.root;
+    const top = m.nodes.find(n => n.parent === root.id);
+    const kids = m.nodes.filter(n => n.parent === top.id);
+    const add = (label, lvl, color, ids) => {
+      groups.push({ label, lvl, color, items: [] });
+      (ids || []).forEach(id => { at[id] = groups.length - 1; });
+    };
+    add(root.group_label || root.name, T.lvlFinished, null, root.supplier_ids);
+    add(top.name, T.lvlBase, null, top.supplier_ids);
+    kids.forEach((k, i) => add(k.name, T.lvlRaw, CAT[i % 4], k.supplier_ids));
+  }
+  const spare = {};
+  sups.forEach(s => {
+    const i = at[s.id];
+    if (i !== undefined) { groups[i].items.push(s); return; }
+    const c = s.component || T.other;
+    if (spare[c] === undefined) { groups.push({ label: c, lvl: "", color: null, items: [] }); spare[c] = groups.length - 1; }
+    groups[spare[c]].items.push(s);
+  });
+  return groups;
+}
+
+function supGroupsHtml(key, sups) {
+  const groups = supGroups(key, sups);
+  if (!groups.length) {
+    return `<ul class="sup">${sups.map(supplierLine).join("") ||
+      `<li><span class="sup-role">${esc(T.layerNoSuppliers)}</span></li>`}</ul>`;
+  }
+  return groups.map(g => `<div class="grp${g.items.length ? "" : " empty"}">
+    <div class="grp-h">${g.color ? `<span class="sw" style="background:${g.color}"></span>` : ""}
+      <span>${esc(g.label)}</span>${g.lvl ? `<span class="lvl">${esc(g.lvl)}</span>` : ""}
+      <span class="n">${g.items.length}</span></div>
+    ${g.items.length
+      ? `<ul class="sup">${g.items.map(supplierLine).join("")}</ul>`
+      : `<div class="grp-empty">${esc(T.noSupplierData)}</div>`}
+  </div>`).join("");
+}
+
+function select(key) {
+  stage.classList.add("has-sel");
+  svg.classList.add("exploded");
+  btnEx.setAttribute("aria-pressed", "true");
+  svg.querySelectorAll(".layer").forEach(g => g.classList.toggle("sel", g.dataset.key === key));
+  renderLayer(key);
+  drillState = { level: 1, sel: "top" };
+  drillRender(key);
+}
+
+function reset() {
+  stage.classList.remove("has-sel");
+  svg.classList.remove("exploded");
+  btnEx.setAttribute("aria-pressed", "false");
+  svg.querySelectorAll(".layer").forEach(g => g.classList.remove("sel"));
+  renderHome();
+  drillEl.hidden = true;
+  drillEl.innerHTML = "";
+}
+
+svg.querySelectorAll(".layer").forEach(g => {
+  g.addEventListener("click", () => select(g.dataset.key));
+  g.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.key); }
+  });
+});
+btnEx.addEventListener("click", () => {
+  const on = svg.classList.toggle("exploded");
+  btnEx.setAttribute("aria-pressed", on ? "true" : "false");
+});
+btnReset.addEventListener("click", reset);
+
+renderHome();
+renderDemand();
+</script>
+
+<p style="max-width:1240px;margin:0 auto;padding:0 24px 40px;font:13px/1.6 sans-serif;color:#8A95A1"><a href="index.html" style="color:inherit">Text edition</a> · Original: <a href="https://claude.ai/artifact/DNEcgGq9tbtRDWCmtWmnnt" style="color:inherit">https://claude.ai/artifact/DNEcgGq9tbtRDWCmtWmnnt</a></p></body></html>

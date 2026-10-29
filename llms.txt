@@ -1,0 +1,10 @@
+# AI Chip Packaging Stack
+
+> How an AI GPU's signal crosses four carriers — die & HBM, advanced packaging (CoWoS), IC substrate (ABF) and PCB — with the materials, suppliers, bottlenecks, cost breakdown and an HBM demand cascade for NVIDIA GB200/GB300/Vera Rubin racks.
+
+## Content
+
+- [Full text (Markdown)](index.md): all layers, suppliers, cost breakdown, demand cascade
+- [Full text (HTML)](index.html)
+- [Structured data (JSON)](data.json)
+- [Interactive version](interactive.html): requires JavaScript
