@@ -4,7 +4,7 @@ GB300 NVL72 rack › Compute tray › Package stack › Materials & suppliers
 
 A signal leaving the GPU die crosses four carriers before it reaches the motherboard. Each one is built from a different material set, and each one has a different supply base. Click any layer to see what it is made of, who makes it, and where it binds.
 
-_Updated 2026-10-23. Text edition of https://claude.ai/artifact/DNEcgGq9tbtRDWCmtWmnnt. Content is user-generated and unverified._
+_Updated 2026-10-23. Content is user-generated and unverified._
 
 ## Overview: four carriers, four material chains
 
